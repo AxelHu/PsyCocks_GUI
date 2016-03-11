@@ -29,6 +29,12 @@ public class UIManager : MonoBehaviour {
 			this.UIList.Add (uip);
 	}
 
+	public void DelOnUIUpdate(UIPanel uip)
+	{
+		if (UIList.Contains (uip))
+			this.UIList.Remove (uip);
+	}
+
 	public void InitUI()
 	{
 

@@ -33,6 +33,25 @@ public class Exp4 : ExpObject
 		DOWN = 3
 	}
 
+	public void InitPara()
+	{
+		ballColor = new Color ((float)config.config4.ballColorR/255f, (float)config.config4.ballColorG/255f, (float)config.config4.ballColorB/255f);
+		backgroundColor = new Color ((float)config.config4.backgroundColorR/255f, (float)config.config4.backgroundColorG/255f, (float)config.config4.backgroundColorB/255f);
+		blockerColor = new Color ((float)config.config4.shelterColorR/255f, (float)config.config4.shelterColorG/255f, (float)config.config4.shelterColorB/255f);
+		ballPixelRad = (float)config.config4.ballRadius;
+		blockerPixelRad = (float)config.config4.shelterRadius;
+		ballToCenterDistance = (float)config.config4.ballCenterDis;
+		ballSpeed1 = config.config4.speed1;
+		ballSpeed2 = config.config4.speed2;
+		ballSpeed3 = config.config4.speed3;
+		ballSpeedList = new List<float>{ ballSpeed1, ballSpeed2, ballSpeed3 };
+		biasFeedbackFlag = config.config4.feedback;
+		repeatTime = config.config4.repeatNum;
+		waitTimeInBetween = config.config4.timeInterval;
+		posList = new List<bool>{ config.config4.left, config.config4.right, config.config4.up, config.config4.down };
+
+	}
+
 	//-------------------
 
 	public EXP4_STATUS currentExpStatus;
@@ -85,6 +104,7 @@ public class Exp4 : ExpObject
 
 	bool roundInitFlag = false;
 	bool checkBallFlag = false;
+	bool overPicFlag = false;
 
 	void ProcessInput()
 	{
@@ -99,7 +119,6 @@ public class Exp4 : ExpObject
 				popoutPic.gameObject.SetActive(false);
 				roundInitFlag = true;
 			}
-
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_PAUSE)
 		{
@@ -115,10 +134,15 @@ public class Exp4 : ExpObject
 			{
 				checkBallFlag = true;
 			}
+			if (Input.GetButtonDown ("EscMenu")) 
+			{
+				EndExp ();
+			}
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_OVER)
 		{
-
+			if (Input.anyKeyDown)
+				ExpManager.instance.GotoNextExp ();
 		}
 	}
 
@@ -197,20 +221,25 @@ public class Exp4 : ExpObject
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_OVER)
 		{
-
-		}
+			if (overPicFlag) 
+			{
+				overPicFlag = false;
+				PopoutWithText ("该任务完成, 按", 99999, 0, 100f);
+			}
+		}	
 	}
 
 	bool showIntroFlag = true;
 	public void ShowIntro()
 	{
-		ShowPopout ("Pics/Inst/Speed_Sensor", 0, 0, 9999);
+		ShowPopout ("Pics/Inst/Speed_Sensor", 0, 0, 99999);
 	}
 
 	public void InitPrefab()
 	{
 		InitBlocker ();// layer z = 5
 		InitBall ();
+		background.GetComponentInChildren<Renderer> ().material.color = backgroundColor;
 	}
 
 	public void InitBlocker()
@@ -363,10 +392,6 @@ public class Exp4 : ExpObject
 			return -1;
 	}
 
-	public void InitPara()
-	{
-	}
-
 	public void SaveData()
 	{}
 
@@ -383,6 +408,15 @@ public class Exp4 : ExpObject
 	public override void EndExp ()
 	{
 		base.EndExp ();
+		currentExpStatus = EXP4_STATUS.EXP_OVER;
+		overPicFlag = true;
+	}
+		
+	public override void ClearUI ()
+	{
+		base.ClearUI ();
+		Destroy (blockerPic);
+		Destroy (ballPic);
 	}
 }
 

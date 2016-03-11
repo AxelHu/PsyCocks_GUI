@@ -7,7 +7,9 @@ public class ExpObject : MonoBehaviour
 
 	public UISprite popoutPic;
 
-	protected UISprite background;
+	protected UIPanel background;
+
+	public PsyEx.Mapper.ExConfig config;
 
 	public virtual void Init()
 	{
@@ -22,7 +24,7 @@ public class ExpObject : MonoBehaviour
 
 		Object prefab4 = Resources.Load ("Prefabs/Background");
 		GameObject go4 = GameObject.Instantiate (prefab4) as GameObject;
-		background = go4.GetComponent<UISprite> ();
+		background = go4.GetComponent<UIPanel> ();
 	}
 
 	public virtual void LoadData()
@@ -70,5 +72,19 @@ public class ExpObject : MonoBehaviour
 
 	public virtual void EndExp()
 	{}
+
+	public virtual void ClearUI()
+	{
+		Destroy (background.gameObject);
+		Destroy (popoutPic.gameObject);
+		GameObject[] goList = GameObject.FindGameObjectsWithTag ("Text");
+		foreach (GameObject go in goList)
+			Destroy (go);
+	}
+
+	public void SetBackgroundColor()
+	{
+		Material mat = background.gameObject.GetComponentInChildren<Renderer> ().material;
+	}
 }
 

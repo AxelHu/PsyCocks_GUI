@@ -47,6 +47,11 @@ public class UIPanel : MonoBehaviour
 		Reshape ();
 	}
 
+	public virtual void OnDestroy()
+	{
+		UIManager.instance.DelOnUIUpdate (this);
+	}
+
 	public void Reshape()
 	{
 		Rescale ();

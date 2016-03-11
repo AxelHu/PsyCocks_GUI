@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using PsyEx.Mapper;
+using System.IO;
+using Newtonsoft.Json;
 
 public class ExpManager : MonoBehaviour
 {
@@ -14,7 +17,11 @@ public class ExpManager : MonoBehaviour
 	protected int currentExpNum;
 	List<ExpObject> expList;
 
+	string configFilePath = "./ExpRun/play.set";
+
 	bool currentExpInitFlag = false;
+
+	bool useAssetBundle = false;
 
 	void Awake()
 	{
@@ -25,6 +32,7 @@ public class ExpManager : MonoBehaviour
 	void Start ()
 	{
 		currentStatus = EXP_STATUS.INIT;
+		Debug.Log (Directory.GetCurrentDirectory ());
 	}
 	
 	// Update is called once per frame
@@ -111,9 +119,18 @@ public class ExpManager : MonoBehaviour
 
 	public void ReadExpList()
 	{
+		string jsonStr = Utils.DoFileJsonInput(configFilePath);
+		List<ExConfig> exConList;
+		exConList = JsonConvert.DeserializeObject<List<ExConfig>> (jsonStr);
+		Debug.Log (exConList);
 		expList = new List<ExpObject> ();
-		expList.Add (LoadExp (4));
-
+		foreach (ExConfig exCon in exConList) 
+		{
+			int num = int.Parse (exCon.exId.Substring(0, 1));
+			ExpObject exp = LoadExp (num);
+			exp.config = exCon;
+			expList.Add (exp);
+		}
 
 		totalExpNum = expList.Count;
 		currentExpNum = 0;
@@ -130,15 +147,22 @@ public class ExpManager : MonoBehaviour
 
 	public void GotoNextExp()
 	{
-		currentExp.EndExp ();
+		//currentExp.EndExp ();
+		currentExp.ClearUI();
 		currentExpNum++;
-		if (currentExpNum >= totalExpNum)
+		if (currentExpNum >= totalExpNum) 
+		{
 			EndAll ();
+			return;
+		}
 		currentExp = expList [currentExpNum];
 		currentExpInitFlag = true;
 	}
 
 	public void EndAll()
-	{}
+	{
+		Destroy (UICamera);
+		Application.Quit ();
+	}
 }
 
