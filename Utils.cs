@@ -32,11 +32,30 @@ public class Utils
 				str = str + strLiLi[j][c] + conSymbol;
 				j++;
 			}
-			str = str.Remove (str.Length-1);
+			if(str.Length > 0)
+				str = str.Remove (str.Length-1);
 			res.Add(str);
 		}
 		//Debug.Log (maxNum);
 		return res;
+	}
+
+	public static List<string> SplitString(string str, string conSymbol)
+	{
+		List<string> res = new List<string>();
+		string res1 = "";
+		string res2 = "";
+		int index = str.IndexOf (conSymbol);
+		res1 = str.Substring (0, index);
+		res2 = str.Substring (index+1);
+		res.Add (res1);
+		res.Add (res2);
+		return res;
+	}
+
+	public static Vector2 GetV2FromV3(Vector3 v3)
+	{
+		return new Vector2 (v3.x, v3.y);
 	}
 
 	/*

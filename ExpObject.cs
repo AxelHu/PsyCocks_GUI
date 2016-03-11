@@ -7,6 +7,8 @@ public class ExpObject : MonoBehaviour
 
 	public UISprite popoutPic;
 
+	protected UISprite background;
+
 	public virtual void Init()
 	{
 		timePass = 0f;
@@ -17,6 +19,10 @@ public class ExpObject : MonoBehaviour
 		pd3.Init (0, 0, 0, 0, 2);
 		popoutPic.InitWithPic (pd3, null, "Pics/TaskR/ST_3D");
 		popoutPic.gameObject.SetActive (false);
+
+		Object prefab4 = Resources.Load ("Prefabs/Background");
+		GameObject go4 = GameObject.Instantiate (prefab4) as GameObject;
+		background = go4.GetComponent<UISprite> ();
 	}
 
 	public virtual void LoadData()
@@ -37,12 +43,32 @@ public class ExpObject : MonoBehaviour
 		popoutPic.posY = posY;
 		StartCoroutine (ClosePopout (time));
 	}
-	
+
 	public IEnumerator ClosePopout(float time)
 	{
 		yield return new WaitForSeconds (time);
 		if(popoutPic.gameObject != null)
 			popoutPic.gameObject.SetActive (false);
 	}
+
+	public void PopoutWithText(string text, float time, float posX = 0, float posY = 0)
+	{
+		Object prefab = Resources.Load ("Prefabs/Text");
+		GameObject go = GameObject.Instantiate (prefab) as GameObject;
+		TextMesh tm = go.GetComponentInChildren<TextMesh> ();
+		go.transform.position += new Vector3 (posX / 100f, posY / 100f, 0);
+		tm.text = text;
+		StartCoroutine (ClosePopout (time, go));
+	}
+
+	public IEnumerator ClosePopout(float time, GameObject go)
+	{
+		yield return new WaitForSeconds (time);
+		if (go != null)
+			Destroy (go);
+	}
+
+	public virtual void EndExp()
+	{}
 }
 

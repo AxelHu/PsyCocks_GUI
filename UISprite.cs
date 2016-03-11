@@ -24,7 +24,6 @@ public class UISprite : UIPanel
 		{
 			this.width = tex.width;
 			this.height = tex.height;
-			Debug.Log (tex.width + "_" + tex.height);
 		}
 		else
 		{

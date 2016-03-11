@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -18,7 +18,7 @@ public class Exp4 : ExpObject
 	float ballSpeed3;
 	List<float> ballSpeedList = new List<float>{50, 100, 150};
 
-	bool biasFeedbackFlag;
+	bool biasFeedbackFlag = true;
 
 	int repeatTime = 1;
 	float waitTimeInBetween = 2f;
@@ -54,6 +54,7 @@ public class Exp4 : ExpObject
 	protected Vector3 currentBallSpeedVec;
 	protected float ballLayer = 4f;
 	protected float blockerLayer = 30f;
+	BALL_BLOCKER_RELATION ballPosCheck;
 	//-------------------
 
 	public override void Init ()
@@ -102,11 +103,11 @@ public class Exp4 : ExpObject
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_PAUSE)
 		{
-			
+
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_PRACTICE)
 		{
-			
+
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_RUN)
 		{
@@ -117,7 +118,7 @@ public class Exp4 : ExpObject
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_OVER)
 		{
-			
+
 		}
 	}
 
@@ -141,11 +142,11 @@ public class Exp4 : ExpObject
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_PAUSE)
 		{
-			
+
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_PRACTICE)
 		{
-			
+
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_RUN)
 		{
@@ -159,7 +160,7 @@ public class Exp4 : ExpObject
 				roundInitFlag = false;
 				if(repeatTime <= 0)
 				{
-					
+					EndExp ();
 					return;
 				}
 				repeatCount --;
@@ -171,34 +172,32 @@ public class Exp4 : ExpObject
 			}
 			ballPic.transform.position += currentBallSpeedVec * Utils.GetDeltaTime();
 
-			BALL_BLOCKER_RELATION check =  CheckBallBlockerRelation();
+			ballPosCheck =  CheckBallBlockerRelation();
 			if(checkBallFlag)
 			{
 				checkBallFlag = false;
-				if(check == BALL_BLOCKER_RELATION.IN)
+				if(ballPosCheck == BALL_BLOCKER_RELATION.IN)
 				{
 					ShowCurrentRunRes();
-					SaveData();
 					roundInitFlag = true;
 				}
 			}
-			if(check == BALL_BLOCKER_RELATION.OUT)
+			if(ballPosCheck == BALL_BLOCKER_RELATION.OUT)
 			{}
-			else if(check == BALL_BLOCKER_RELATION.IN)
+			else if(ballPosCheck == BALL_BLOCKER_RELATION.IN)
 			{}
-			else if(check == BALL_BLOCKER_RELATION.INTERSECT)
+			else if(ballPosCheck == BALL_BLOCKER_RELATION.INTERSECT)
 			{}
 			else
 			{
 				ShowCurrentRunRes();
-				SaveData();
 				Debug.Log ("timeOut");
 				roundInitFlag = true;
 			}
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_OVER)
 		{
-			
+
 		}
 	}
 
@@ -307,17 +306,17 @@ public class Exp4 : ExpObject
 		else if (distance <= (ballPixelRad + blockerPixelRad) / 100f) 
 		{
 			if((v1.x > v2.x && currentBallSpeedVec.x < 0)
-			    ||(v1.x < v2.x && currentBallSpeedVec.x > 0)
-			    ||(v1.y > v2.y && currentBallSpeedVec.y < 0)
-			    ||(v1.y < v2.y && currentBallSpeedVec.y > 0))
+				||(v1.x < v2.x && currentBallSpeedVec.x > 0)
+				||(v1.y > v2.y && currentBallSpeedVec.y < 0)
+				||(v1.y < v2.y && currentBallSpeedVec.y > 0))
 				return BALL_BLOCKER_RELATION.INTERSECT;
 			else
 				return BALL_BLOCKER_RELATION.INTERSECT_PASSED;
 		}
 		else if((v1.x > v2.x && currentBallSpeedVec.x < 0)
-		        ||(v1.x < v2.x && currentBallSpeedVec.x > 0)
-		        ||(v1.y > v2.y && currentBallSpeedVec.y < 0)
-		        ||(v1.y < v2.y && currentBallSpeedVec.y > 0))
+			||(v1.x < v2.x && currentBallSpeedVec.x > 0)
+			||(v1.y > v2.y && currentBallSpeedVec.y < 0)
+			||(v1.y < v2.y && currentBallSpeedVec.y > 0))
 			return BALL_BLOCKER_RELATION.OUT;
 		else
 			return BALL_BLOCKER_RELATION.PASSED;
@@ -337,18 +336,35 @@ public class Exp4 : ExpObject
 	float waitTimeCount;
 	public void ShowCurrentRunRes()
 	{
+		SaveData ();
 		ballPic.transform.position = new Vector3 (ballPic.transform.position.x, ballPic.transform.position.y, blockerLayer + 20f);
 		waitTimeCount = waitTimeInBetween;
-		PopoutWithText("123");
+		if (ballPosCheck == BALL_BLOCKER_RELATION.IN) 
+		{
+			if (biasFeedbackFlag)
+				PopoutWithText ("偏差率-" + CalCorrectRate(), waitTimeInBetween, 0, 100f);
+		}
+		else
+		{
+			PopoutWithText ("反应超时！", waitTimeInBetween, 0, 100f);
+		}
+	}
+
+	public float CalCorrectRate()
+	{
+		if (ballPosCheck == BALL_BLOCKER_RELATION.IN) 
+		{
+			Vector2 p1 = Utils.GetV2FromV3 (ballPic.transform.position);
+			Vector2 p2 = Utils.GetV2FromV3 (blockerPic.transform.position);
+			float dis1 = Vector2.Distance (p1, p2);
+			return dis1 / blockerPixelRad * 100f;
+		}
+		else
+			return -1;
 	}
 
 	public void InitPara()
 	{
-	}
-
-	public void PopoutWithText(string text, float posX = 0, float posY = 0)
-	{
-
 	}
 
 	public void SaveData()
@@ -362,6 +378,11 @@ public class Exp4 : ExpObject
 		EXP_PRACTICE,
 		EXP_RUN,
 		EXP_OVER
+	}
+		
+	public override void EndExp ()
+	{
+		base.EndExp ();
 	}
 }
 
