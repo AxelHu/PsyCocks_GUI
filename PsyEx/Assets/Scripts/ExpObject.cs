@@ -53,7 +53,13 @@ public class ExpObject : MonoBehaviour
 			popoutPic.gameObject.SetActive (false);
 	}
 
-	public void PopoutWithText(string text, float time, float posX = 0, float posY = 0)
+	public void ClosePopout()
+	{
+		if(popoutPic.gameObject != null)
+			popoutPic.gameObject.SetActive (false);
+	}
+
+	public GameObject PopoutWithText(string text, float time, float posX = 0, float posY = 0)
 	{
 		Object prefab = Resources.Load ("Prefabs/Text");
 		GameObject go = GameObject.Instantiate (prefab) as GameObject;
@@ -61,6 +67,7 @@ public class ExpObject : MonoBehaviour
 		go.transform.position += new Vector3 (posX / 100f, posY / 100f, 0);
 		tm.text = text;
 		StartCoroutine (ClosePopout (time, go));
+		return go;
 	}
 
 	public IEnumerator ClosePopout(float time, GameObject go)

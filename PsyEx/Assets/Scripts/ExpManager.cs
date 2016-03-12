@@ -53,8 +53,8 @@ public class ExpManager : MonoBehaviour
 				currentExpInitFlag = false;
 				currentExp.Init ();
 			}
-			UIManager.instance.OnUIUpdate();
 			currentExp.UpdateExpLogic();
+			UIManager.instance.OnUIUpdate();
 		}
 		else if(currentStatus == EXP_STATUS.PAUSE)
 		{
@@ -135,6 +135,14 @@ public class ExpManager : MonoBehaviour
 		totalExpNum = expList.Count;
 		currentExpNum = 0;
 		currentExp = expList [0];
+
+		//Test code
+		//expList = new List<ExpObject> ();
+		//ExpObject ex = LoadExp (5);
+		//expList.Add (ex);
+		//totalExpNum = 1;
+		//currentExpNum = 0;
+		//currentExp = expList [0];
 	}
 
 	public ExpObject LoadExp(int expNum)
