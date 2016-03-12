@@ -166,8 +166,55 @@ public class Utils
         return jsoninput;
     }
 
+    public static bool DoFileOutputLine(string path, string fileName, List<string> textList)
+    {
+        bool flag = false;
+        FileStream fs = null;
+        StreamWriter sw = null;
+        try
+        {
+            fs = new FileStream(path + "/" + fileName, FileMode.Append, FileAccess.Write);
+            sw = new StreamWriter(fs, Encoding.UTF8);
+            string data = "";
+            foreach(string str in textList)
+            {
+                string convert = str;
+                if (str.Contains(',')) //含逗号 冒号 换行符的需要放到引号中
+                {
+                    convert = string.Format("\"{0}\"", str);
+                }
+                data += convert + ",";
+            }
+            data = data.Substring(0, data.Length - 1);
+            sw.WriteLine(data);
+            sw.WriteLine();
+            flag = true;           
+        }
+        catch (Exception)
+        {
+        }
+        finally
+        {
+            sw.BaseStream.Flush();
+            fs.Flush();
+            sw.Close();
+            fs.Close();
+        }
+        return flag;
+    }
 
-	/*
+    public static string MakeDirectoy(string foldername)
+    {
+
+        string sPath = Directory.GetCurrentDirectory() + "\\" + foldername;
+        if (!Directory.Exists(sPath))
+        {
+            Directory.CreateDirectory(sPath);
+        }
+        return sPath;
+    }
+
+    /*
 	// test code
 	List<string> a1 = new List<string>{"a", "b"};
 	List<string> a2 = new List<string>{"1", "2", "3"};

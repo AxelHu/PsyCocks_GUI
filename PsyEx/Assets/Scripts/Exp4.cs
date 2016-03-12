@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class Exp4 : ExpObject
 {
 	Color ballColor = Color.blue;
 	Color backgroundColor;
 	Color blockerColor = Color.green;
-
+   
 	float ballPixelRad = 10;
 	float blockerPixelRad = 50;
 	float ballToCenterDistance = 300;
@@ -22,6 +23,8 @@ public class Exp4 : ExpObject
 
 	int repeatTime = 1;
 	float waitTimeInBetween = 2f;
+
+    Vector2 destPoint = new Vector2(0,0);
 
 	List<bool> posList = new List<bool>{true, true, true, true};
 
@@ -73,7 +76,12 @@ public class Exp4 : ExpObject
 	protected Vector3 currentBallSpeedVec;
 	protected float ballLayer = 4f;
 	protected float blockerLayer = 30f;
-	BALL_BLOCKER_RELATION ballPosCheck;
+
+    protected DateTime startTime;
+    protected DateTime pressTime;
+    protected DateTime disappearTime;
+
+    BALL_BLOCKER_RELATION ballPosCheck;
 	//-------------------
 
 	public override void Init ()
@@ -82,6 +90,7 @@ public class Exp4 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
+        InitOutput ();
 
 		int tempCount = 0;
 		foreach (bool bl in posList) 
@@ -92,6 +101,16 @@ public class Exp4 : ExpObject
 		repeatCount = repeatTime * (tempCount) * 3;
 		Debug.Log (repeatCount);
 	}
+
+    void InitOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "taskno", "speed", "movedirection", "starttime", "disappartime", "presstime", "movetime", "reacttime", "exacttime", "estimatetime", "errorratio", "startpoint", "presspoint" };
+        string path, filename;
+        path = Utils.MakeDirectoy("Data\\test");
+        filename = "test.csv";
+        Utils.DoFileOutputLine(path, filename, outputlist);
+    }
 
 	public override void UpdateExpLogic ()
 	{
@@ -291,6 +310,8 @@ public class Exp4 : ExpObject
 
 	public void SetCurrentRun()
 	{
+        startTime = DateTime.Now;
+
 		currentRunSetting = ranEx4.GetNextRanVal();
 		string[] splitRes = currentRunSetting.Split ('_');
 		string str1 = splitRes [0];
@@ -364,8 +385,7 @@ public class Exp4 : ExpObject
 
 	float waitTimeCount;
 	public void ShowCurrentRunRes()
-	{
-		SaveData ();
+	{        
 		ballPic.transform.position = new Vector3 (ballPic.transform.position.x, ballPic.transform.position.y, blockerLayer + 20f);
 		waitTimeCount = waitTimeInBetween;
 		if (ballPosCheck == BALL_BLOCKER_RELATION.IN) 
@@ -377,6 +397,41 @@ public class Exp4 : ExpObject
 		{
 			PopoutWithText ("反应超时！", waitTimeInBetween, 0, 100f);
 		}
+
+        pressTime = DateTime.Now;
+
+        string movedirection="";
+        switch(currentStartPos)
+        {
+            case "left":
+                movedirection = "right";
+                break;
+            case "right":
+                movedirection = "left";
+                break;
+            case "up":
+                movedirection = "down";
+                break;
+            case "down":
+                movedirection = "up";
+                break;
+            default:
+                break;
+        }        
+
+        float movetime, reacttime, exacttime, estimatetime;
+        movetime = (ballToCenterDistance - blockerPixelRad) / currentBallSpeed;
+        disappearTime = startTime.Add(new TimeSpan(0, 0, 0, (int)movetime));
+
+        Vector2 p1 = Utils.GetV2FromV3(ballPic.transform.position);
+        Vector2 p2 = Utils.GetV2FromV3(blockerPic.transform.position);
+        float dis1 = Vector2.Distance(p1, p2);
+        reacttime = (blockerPixelRad - dis1) / currentBallSpeed;
+        exacttime = reacttime + movetime;
+        estimatetime = blockerPixelRad / currentBallSpeed;
+
+        SaveData (currentRepeatNum, currentRepeatNum,movedirection,startTime,disappearTime,pressTime,movetime,reacttime,exacttime,estimatetime, CalCorrectRate(), p1, p2);
+
 	}
 
 	public float CalCorrectRate()
@@ -392,8 +447,30 @@ public class Exp4 : ExpObject
 			return -1;
 	}
 
-	public void SaveData()
-	{}
+    public void SaveData(int taskno, int speed, string movedirection, DateTime starttime, DateTime disappartime, DateTime presstime, double movetime, double reacttime, double exacttime, double estimatetime, double errorratio, Vector2 startpoint, Vector2 presspoint)
+	{
+        List<string> savelist = new List<string>();
+        //savelist.Add();
+        savelist.Add(taskno.ToString());
+        savelist.Add(speed.ToString("f0"));
+        savelist.Add(movedirection);
+        savelist.Add(starttime.ToString());
+        savelist.Add(disappartime.ToString());
+        savelist.Add(presstime.ToString());
+        savelist.Add(movetime.ToString("f1"));
+        savelist.Add(reacttime.ToString("f1"));
+        savelist.Add(exacttime.ToString("f1"));
+        savelist.Add(estimatetime.ToString("f1"));
+        savelist.Add(errorratio.ToString("f3"));
+        savelist.Add("{" + startpoint.x.ToString("f0") + "," + startpoint.y.ToString("f0") + "}");
+        savelist.Add("{" + destPoint.x.ToString("f0") + "," + destPoint.y.ToString("f0") + "}");
+        savelist.Add("{" + presspoint.x.ToString("f0") + "," + presspoint.y.ToString("f0") + "}");
+
+        string path, filename;
+        path = Utils.MakeDirectoy("Data\\test");
+        filename = "test.csv";
+        Utils.DoFileOutputLine(path, filename, savelist);
+    }
 
 	public enum EXP4_STATUS
 	{
