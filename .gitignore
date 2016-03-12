@@ -1,4 +1,4 @@
-/PsyEx/Temp/
+./PsyEx/Temp/
 *.csproj
 *.sln
-/PsyEx/Library/
+./PsyEx/Library/
