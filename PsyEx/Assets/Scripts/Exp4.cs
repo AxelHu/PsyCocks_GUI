@@ -182,7 +182,7 @@ public class Exp4 : ExpObject
 			if(roundInitFlag)
 			{
 				roundInitFlag = false;
-				if(repeatTime <= 0)
+				if(repeatCount <= 0)
 				{
 					EndExp ();
 					return;
@@ -224,7 +224,7 @@ public class Exp4 : ExpObject
 			if (overPicFlag) 
 			{
 				overPicFlag = false;
-				PopoutWithText ("该任务完成, 按", 99999, 0, 100f);
+				PopoutWithText ("该任务完成, 按任意键结束", 99999, 0, 100f);
 			}
 		}	
 	}
