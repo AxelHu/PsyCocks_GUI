@@ -1,3 +1,4 @@
-*
-!PsyEx/Assets
-!.gitignore
+/PsyEx/Temp
+*.csproj
+*.sln
+/PsyEx/Library
