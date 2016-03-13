@@ -179,7 +179,7 @@ public class Utils
             foreach(string str in textList)
             {
                 string convert = str;
-                if (str.Contains(',')) //含逗号 冒号 换行符的需要放到引号中
+                if (str.Contains(','))
                 {
                     convert = string.Format("\"{0}\"", str);
                 }

@@ -48,5 +48,36 @@ public class RanGenExp5 : RanGen
 		strLiLi.Add (resLi2);
 		base.Init (strLiLi, ",");
 	}
+
+	public void InitExp5Prac(string num, string xz, string ab, string cd)
+	{
+		List<string> strLi1_1 = new List<string>{num};
+		List<string> strLi1_2 = new List<string>{xz};
+		List<string> strLi1_3 = new List<string>{"15"};
+		List<string> strLi1_4 = new List<string>{ab};
+		List<List<string>> strLiLi1 = new List<List<string>> ();
+		strLiLi1.Add (strLi1_1);
+		strLiLi1.Add (strLi1_2);
+		strLiLi1.Add (strLi1_3);
+		strLiLi1.Add (strLi1_4);
+		List<string> resLi1 = Utils.StringMulti (strLiLi1);
+
+
+		List<string> strLi2_1 = new List<string>{num};
+		List<string> strLi2_2 = new List<string>{xz};
+		List<string> strLi2_3 = new List<string>{"75", "135", "195"};
+		List<string> strLi2_4 = new List<string>{cd};
+		List<List<string>> strLiLi2 = new List<List<string>> ();
+		strLiLi2.Add (strLi2_1);
+		strLiLi2.Add (strLi2_2);
+		strLiLi2.Add (strLi2_3);
+		strLiLi2.Add (strLi2_4);
+		List<string> resLi2 = Utils.StringMulti (strLiLi2);
+
+		List<List<string>> strLiLi = new List<List<string>> ();
+		strLiLi.Add (resLi1);
+		strLiLi.Add (resLi2);
+		base.Init (strLiLi, ",");
+	}
 }
 

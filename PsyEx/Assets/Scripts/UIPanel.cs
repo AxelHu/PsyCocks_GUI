@@ -49,6 +49,7 @@ public class UIPanel : MonoBehaviour
 
 	public virtual void OnDestroy()
 	{
+		if(this.gameObject != null)
 		UIManager.instance.DelOnUIUpdate (this);
 	}
 

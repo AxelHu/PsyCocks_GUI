@@ -266,7 +266,7 @@ public class Exp4 : ExpObject
 
 	public void InitBlocker()
 	{
-		Object prefab1 = Resources.Load ("Prefabs/Exp4Blocker");
+		UnityEngine.Object prefab1 = Resources.Load ("Prefabs/Exp4Blocker");
 		blockerPic = GameObject.Instantiate (prefab1) as GameObject;
 		GameObject sphere = blockerPic.transform.FindChild("Sphere").gameObject;
 		sphere.transform.localScale = new Vector3 (blockerPixelRad / 50f, blockerPixelRad / 50f, blockerPixelRad / 50f);
@@ -278,7 +278,7 @@ public class Exp4 : ExpObject
 
 	public void InitBall()
 	{
-		Object prefab1 = Resources.Load ("Prefabs/Exp4Ball");
+		UnityEngine.Object prefab1 = Resources.Load ("Prefabs/Exp4Ball");
 		ballPic = GameObject.Instantiate (prefab1) as GameObject;
 		GameObject sphere = ballPic.transform.FindChild("Sphere").gameObject;
 		sphere.transform.localScale = new Vector3 (ballPixelRad / 50f, ballPixelRad / 50f, ballPixelRad / 50f);
