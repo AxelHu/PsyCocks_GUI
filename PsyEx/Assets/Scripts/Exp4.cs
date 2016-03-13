@@ -77,6 +77,7 @@ public class Exp4 : ExpObject
 	protected float ballLayer = 4f;
 	protected float blockerLayer = 30f;
 
+    protected string saveTime;
     protected DateTime startTime;
     protected DateTime pressTime;
     protected DateTime disappearTime;
@@ -106,9 +107,11 @@ public class Exp4 : ExpObject
     {
         List<string> outputlist = new List<string>();
         outputlist = new List<string> { "taskno", "speed", "movedirection", "starttime", "disappartime", "presstime", "movetime", "reacttime", "exacttime", "estimatetime", "errorratio", "startpoint", "presspoint" };
+
+        saveTime = DateTime.Now.ToString("yyyy-MM-dd");
         string path, filename;
-        path = Utils.MakeDirectoy("Data\\test");
-        filename = "test.csv";
+        path = Utils.MakeDirectoy("Data\\" + saveTime);
+        filename = "Task4-" + saveTime + ".csv";
         Utils.DoFileOutputLine(path, filename, outputlist);
     }
 
@@ -467,8 +470,8 @@ public class Exp4 : ExpObject
         savelist.Add("{" + presspoint.x.ToString("f0") + "," + presspoint.y.ToString("f0") + "}");
 
         string path, filename;
-        path = Utils.MakeDirectoy("Data\\test");
-        filename = "test.csv";
+        path = Utils.MakeDirectoy("Data\\" + saveTime);
+        filename = "Task4-" + saveTime + ".csv";
         Utils.DoFileOutputLine(path, filename, savelist);
     }
 

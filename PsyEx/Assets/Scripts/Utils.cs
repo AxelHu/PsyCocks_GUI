@@ -187,7 +187,6 @@ public class Utils
             }
             data = data.Substring(0, data.Length - 1);
             sw.WriteLine(data);
-            sw.WriteLine();
             flag = true;           
         }
         catch (Exception)
