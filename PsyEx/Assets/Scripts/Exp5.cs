@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class Exp5 : ExpObject
 {
@@ -25,7 +26,11 @@ public class Exp5 : ExpObject
 	bool introPopoutFlag = false;
 	bool introPopoutFlag2 = false;
 
-	float waitTime; // used in several states to manually record time pass
+    protected string saveTime;
+    protected DateTime startTime;
+    protected DateTime endTime;
+
+    float waitTime; // used in several states to manually record time pass
 
 	public void InitPara()
 	{
@@ -34,12 +39,12 @@ public class Exp5 : ExpObject
 		this.viewTime = config.config5.viewTime;
 		this.lastTime = config.config5.lastTime;
 
-		eightNineFlag = (1 == (int)Random.Range(0, 2));
+		eightNineFlag = (1 == (int)UnityEngine.Random.Range(0, 2));
 		//pointTime = 0.1f;
 		//viewTime = 3f;
 		//lastTime = 2f;
 		ansResTime = 0.5f;
-		corOrWroFlag = (1 == (int)Random.Range(0, 2));
+		corOrWroFlag = (1 == (int)UnityEngine.Random.Range(0, 2));
 	}
 
 	public override void Init()
@@ -49,9 +54,22 @@ public class Exp5 : ExpObject
 		InitPrefab ();
 		InitRan ();
 
+        startTime = DateTime.Now;
 		currentExpStatus = EXP5_STATUS.EXP_INIT;
 		waitTime = 0.2f;// pretend loading
 	}
+
+    void InitOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "taskno", "leftimg", "rightimg", "iscoincide", "keypress", "isright", "reacttime" };
+
+        saveTime = DateTime.Now.ToString("yyyy-MM-dd");
+        string path, filename;
+        path = Utils.MakeDirectoy("Data\\" + saveTime);
+        filename = "Task5-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(path, filename, outputlist);
+    }
 
 	bool tempCheck = true;
 	public override void UpdateExpLogic ()
@@ -131,25 +149,25 @@ public class Exp5 : ExpObject
 
 	private void InitPrefab()
 	{
-		// leftPic
-		Object prefab1 = Resources.Load ("Prefabs/Exp5Pic");
+        // leftPic
+        UnityEngine.Object prefab1 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go1 = GameObject.Instantiate (prefab1) as GameObject;
 		leftPic = go1.GetComponent<UISprite> ();
 		PanelData pd1 = new PanelData ();
 		pd1.Init (600, 600, 300, 0, 1);
 		leftPic.InitWithPic (pd1, null, "Pics/TaskR/1_x_15_a");
 		leftPic.gameObject.SetActive (false);
-		
-		// rightPic
-		Object prefab2 = Resources.Load ("Prefabs/Exp5Pic");
+
+        // rightPic
+        UnityEngine.Object prefab2 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go2 = GameObject.Instantiate (prefab1) as GameObject;
 		rightPic = go2.GetComponent<UISprite> ();
 		PanelData pd2 = new PanelData ();
 		pd2.Init (600, 600, -300, 0, 1);
 		rightPic.InitWithPic (pd2, null, "Pics/TaskR/1_x_15_b");
 		rightPic.gameObject.SetActive (false);
-		
-		Object prefab3 = Resources.Load ("Prefabs/Exp5Pic");
+
+        UnityEngine.Object prefab3 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go3 = GameObject.Instantiate (prefab1) as GameObject;
 		popoutPic = go3.GetComponent<UISprite> ();
 		PanelData pd3 = new PanelData ();
@@ -206,6 +224,35 @@ public class Exp5 : ExpObject
 		string picPath = RespondPicPath (currentPicCombStatus, currentAnswerStatus);
 		ShowPopout (picPath, 0, 0, resPopoutTime);
 	}
+
+    /*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
+左侧图片：左侧图片的文件名称
+右侧图片：右侧图片的文件名称
+能否重合：左侧图片和右侧图片能否经过旋转后重合（0能，1不能 ）
+反应按键：按键为F则存储为0，按键为J则存储为1，超时则存储为-1
+是否正确：“能否重合”=“按键情况”则存储为1，否则存储为0
+反应时：图片呈现到被试按键的时间（单位毫秒）保留小数点后一位小数（例如2000.0），如果超时则存储为-1
+实验开始时间：进入指导语界面的世界时间（例如：09:30:30）
+实验结束时间：该任务结束的界面世界时间（例如：09:40:30）
+实验用时：实验结束时间 减去 实验开始时间，单位为“秒”，保留小数点后一位小数（例如2000.0）
+*/
+
+    public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
+    {
+        List<string> savelist = new List<string>();
+        savelist.Add(taskno.ToString());
+        savelist.Add(leftimg);
+        savelist.Add(rightimg);
+        savelist.Add(iscoincide.ToString());
+        savelist.Add(keypress.ToString());
+        savelist.Add(isright.ToString());
+        savelist.Add(reacttime.ToString("f1"));
+
+        string path, filename;
+        path = Utils.MakeDirectoy("Data\\" + saveTime);
+        filename = "Task5-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(path, filename, savelist);
+    }
 
 	float pointTimeCount2;
 	bool pointShowFlag = false;
@@ -542,7 +589,7 @@ public class Exp5 : ExpObject
 			else if (ran8z.IsFinished ())
 				is8x = true;
 			else
-				is8x = ((int)Random.Range (0, 2) == 1);
+				is8x = ((int)UnityEngine.Random.Range (0, 2) == 1);
 			if (is8x) 
 				ChangePicByRanGen (ran8x);
 			else
@@ -557,7 +604,7 @@ public class Exp5 : ExpObject
 			else if (ran9z.IsFinished ())
 				is9x = true;
 			else
-				is9x = ((int)Random.Range (0, 2) == 1);
+				is9x = ((int)UnityEngine.Random.Range (0, 2) == 1);
 			if (is9x) 
 				ChangePicByRanGen (ran9x);
 			else
@@ -581,7 +628,7 @@ public class Exp5 : ExpObject
 		if (corOrWroFlag)
 		{
 			corOrWroFlag = !corOrWroFlag;
-			int sele = (int)Random.Range (0, 4);
+			int sele = (int)UnityEngine.Random.Range (0, 4);
 			if (sele == 0)
 				ChangePicByRanGen (ran1xaa);
 			else if (sele == 1)
@@ -594,7 +641,7 @@ public class Exp5 : ExpObject
 		else
 		{
 			corOrWroFlag = !corOrWroFlag;
-			int sele = (int)Random.Range (0, 4);
+			int sele = (int)UnityEngine.Random.Range (0, 4);
 			if (sele == 0)
 				ChangePicByRanGen (ran1xab);
 			else if (sele == 1)

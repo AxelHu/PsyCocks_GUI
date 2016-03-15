@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using PsyEx.Mapper;
 using System.IO;
 using Newtonsoft.Json;
+using System;
 
 public class ExpManager : MonoBehaviour
 {
@@ -15,11 +16,15 @@ public class ExpManager : MonoBehaviour
 
 	protected int totalExpNum;
 	protected int currentExpNum;
+    public static Tester tester = new Tester();
 	List<ExpObject> expList;
+    public static HDConfig hdconfig = new HDConfig();
 
-	string configFilePath = "./ExpRun/play.set";
+    string testerFilePath = "./ExpRun/play.tester";
+    string configFilePath = "./ExpRun/play.set";
+    string hdFilePath = "./ExpRun/play.hdset";
 
-	bool currentExpInitFlag = false;
+    bool currentExpInitFlag = false;
 
 	bool useAssetBundle = false;
 
@@ -41,7 +46,9 @@ public class ExpManager : MonoBehaviour
 		//TODO
 		if(currentStatus == EXP_STATUS.INIT)
 		{
+            ReadTester();
 			ReadExpList ();
+            ReadHdset();
 			InitCamera ();
 			currentExpInitFlag = true;
 			currentStatus = EXP_STATUS.RUN;
@@ -70,8 +77,47 @@ public class ExpManager : MonoBehaviour
 		}
 	}
 
+    private void ReadHdset()
+    {
+        Dictionary<string, string> DataList = new Dictionary<String, String>();
+        DataList = Utils.DoFileInput(testerFilePath)[0];
+        string str;
+        double i;
+        DataList.TryGetValue("Speed", out str);
+        double.TryParse(str, out i);
+        hdconfig.Speed = i;
+        DataList.TryGetValue("Sensibility", out str);
+        double.TryParse(str, out i);
+        hdconfig.Sensibility = i;
+        DataList.TryGetValue("Distance", out str);
+        double.TryParse(str, out i);
+        hdconfig.Distance = i;
+        DataList.TryGetValue("Angle", out str);
+        double.TryParse(str, out i);
+        hdconfig.Angle = i;
+    }
 
-	public static float GetDeltaTime()
+    private void ReadTester()
+    {
+        Dictionary <string, string> DataList = new Dictionary<String, String>();
+        DataList = Utils.DoFileInput(testerFilePath)[0];
+        string str;
+        int i;
+        DataList.TryGetValue("ID", out str);
+        tester.Id = str;
+        DataList.TryGetValue("Name", out str);
+        tester.Name = str;
+        DataList.TryGetValue("Sex", out str);
+        tester.Sex = str;
+        DataList.TryGetValue("Age", out str);
+        int.TryParse(str, out i);
+        tester.Age = i;
+        DataList.TryGetValue("Count", out str);
+        int.TryParse(str, out i);
+        tester.Count = i;
+    }
+
+    public static float GetDeltaTime()
 	{
 		return Time.deltaTime;
 	}

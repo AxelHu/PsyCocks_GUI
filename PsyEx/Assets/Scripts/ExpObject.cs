@@ -9,7 +9,9 @@ public class ExpObject : MonoBehaviour
 
 	protected UIPanel background;
 
+    public PsyEx.Mapper.Tester tester;
 	public PsyEx.Mapper.ExConfig config;
+    public PsyEx.Mapper.HDConfig hdconfig;
 
 	public virtual void Init()
 	{
