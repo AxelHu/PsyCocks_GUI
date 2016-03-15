@@ -30,6 +30,11 @@ public class Exp5 : ExpObject
     protected DateTime startTime;
     protected DateTime endTime;
 
+    protected int taskno = 0;
+
+    protected string savePath;
+    protected string saveFilename;
+
     float waitTime; // used in several states to manually record time pass
 
 	public void InitPara()
@@ -62,13 +67,12 @@ public class Exp5 : ExpObject
     void InitOutput()
     {
         List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "taskno", "leftimg", "rightimg", "iscoincide", "keypress", "isright", "reacttime" };
+        outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时" };
 
-        saveTime = DateTime.Now.ToString("yyyy-MM-dd");
-        string path, filename;
-        path = Utils.MakeDirectoy("Data\\" + saveTime);
-        filename = "Task5-" + saveTime + ".csv";
-        Utils.DoFileOutputLine(path, filename, outputlist);
+        saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveFilename = "T5-" + config.sortId + "-任务5-三维心理旋转测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
     }
 
 	bool tempCheck = true;
@@ -225,18 +229,6 @@ public class Exp5 : ExpObject
 		ShowPopout (picPath, 0, 0, resPopoutTime);
 	}
 
-    /*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
-左侧图片：左侧图片的文件名称
-右侧图片：右侧图片的文件名称
-能否重合：左侧图片和右侧图片能否经过旋转后重合（0能，1不能 ）
-反应按键：按键为F则存储为0，按键为J则存储为1，超时则存储为-1
-是否正确：“能否重合”=“按键情况”则存储为1，否则存储为0
-反应时：图片呈现到被试按键的时间（单位毫秒）保留小数点后一位小数（例如2000.0），如果超时则存储为-1
-实验开始时间：进入指导语界面的世界时间（例如：09:30:30）
-实验结束时间：该任务结束的界面世界时间（例如：09:40:30）
-实验用时：实验结束时间 减去 实验开始时间，单位为“秒”，保留小数点后一位小数（例如2000.0）
-*/
-
     public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
     {
         List<string> savelist = new List<string>();
@@ -248,10 +240,7 @@ public class Exp5 : ExpObject
         savelist.Add(isright.ToString());
         savelist.Add(reacttime.ToString("f1"));
 
-        string path, filename;
-        path = Utils.MakeDirectoy("Data\\" + saveTime);
-        filename = "Task5-" + saveTime + ".csv";
-        Utils.DoFileOutputLine(path, filename, savelist);
+        Utils.DoFileOutputLine(savePath, saveFilename, savelist);
     }
 
 	float pointTimeCount2;
@@ -727,7 +716,32 @@ public class Exp5 : ExpObject
 
 	public void RecordAns()
 	{
-		//TODO
-	}
+        //TODO
+        //SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
+        /*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
+左侧图片：左侧图片的文件名称
+右侧图片：右侧图片的文件名称
+能否重合：左侧图片和右侧图片能否经过旋转后重合（0能，1不能 ）
+反应按键：按键为F则存储为0，按键为J则存储为1，超时则存储为-1
+是否正确：“能否重合”=“按键情况”则存储为1，否则存储为0
+反应时：图片呈现到被试按键的时间（单位毫秒）保留小数点后一位小数（例如2000.0），如果超时则存储为-1
+*/  
+        int iscoincide;
+        int keypress = -1;
+        int isright;
+
+        taskno++;
+        iscoincide = (CheckSameShape(currentLeftPicName, currentRightPicName) == true ? 0 : 1);
+        if (isFPressed)
+        {
+            keypress = 0;
+        }
+        else if (isJPressed)
+        {
+            keypress = 1;
+        }
+        isright = ((iscoincide == keypress) ? 1 : 0);
+
+    }
 }
 

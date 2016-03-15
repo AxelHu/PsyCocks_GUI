@@ -113,7 +113,7 @@ public class Exp4 : ExpObject
     void InitOutput()
     {
         List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "测试序号", "速度", "运动方向", "运动开始时间", "消失时间", "按键时间", "可见运动时间", "进入遮挡物到按键时间", "实际时间(毫秒)", "估计时间(毫秒)", "偏差率", "起始坐标", "目标坐标", "按键坐标" };
+        outputlist = new List<string> { "测试序号", "速度", "运动方向", "运动开始时间", "消失时间", "按键时间", "可见运动时间", "进入遮挡物到按键时间", "实际时间(毫秒)", "估计时间(毫秒)", "偏差率", "起始坐标", "目标坐标", "按键坐标", "实验开始时间", "实验结束时间", "实验用时" };
 
         saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
@@ -489,6 +489,23 @@ public class Exp4 : ExpObject
         savelist.Add("{" + (destPoint.x * 100).ToString("f0") + "," + (destPoint.y * 100).ToString("f0") + "}");
         savelist.Add("{" + (presspoint.x * 100).ToString("f0") + "," + (presspoint.y * 100).ToString("f0") + "}");
 
+        int tempCount = 0;
+        foreach (bool bl in posList)
+        {
+            if (bl)
+                tempCount++;
+        }
+        if (taskno== repeatTime * (tempCount) * 3)
+        {
+            taskendTime = DateTime.Now;
+            TimeSpan ts = taskstartTime.Subtract(taskendTime).Duration();
+            savelist.Add(taskstartTime.ToString("HH:mm:ss"));
+            savelist.Add(taskendTime.ToString("HH:mm:ss"));
+            int duration;
+            duration = ts.Minutes * 60 + ts.Seconds;
+            savelist.Add(duration.ToString());
+        }
+
         Utils.DoFileOutputLine(savePath, saveFilename, savelist);
     }
 
@@ -504,16 +521,6 @@ public class Exp4 : ExpObject
 		
 	public override void EndExp ()
 	{
-        List<string> savelist = new List<string>();
-
-        taskendTime = DateTime.Now;
-        TimeSpan ts = taskstartTime.Subtract(taskendTime).Duration();
-        savelist.Add("实验开始时间:"+taskstartTime.ToString("HH:mm:ss"));
-        savelist.Add("实验结束时间:"+taskendTime.ToString("HH:mm:ss"));
-        savelist.Add("实验用时:" + ts.ToString());
-
-        Utils.DoFileOutputLine(savePath, saveFilename, savelist);
-
         base.EndExp ();
 		currentExpStatus = EXP4_STATUS.EXP_OVER;
 		overPicFlag = true;
