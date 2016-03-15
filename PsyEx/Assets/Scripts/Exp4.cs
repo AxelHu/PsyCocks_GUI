@@ -485,9 +485,9 @@ public class Exp4 : ExpObject
         {
             savelist.Add((errorratio * 100).ToString("f1") + "%");
         }
-        savelist.Add("{" + (startpoint.x).ToString("f0") + "," + (startpoint.y).ToString("f0") + "}");
-        savelist.Add("{" + (destPoint.x * 100).ToString("f0") + "," + (destPoint.y * 100).ToString("f0") + "}");
-        savelist.Add("{" + (presspoint.x * 100).ToString("f0") + "," + (presspoint.y * 100).ToString("f0") + "}");
+        savelist.Add("{" + (startpoint.x).ToString("f0") + ";" + (startpoint.y).ToString("f0") + "}");
+        savelist.Add("{" + (destPoint.x * 100).ToString("f0") + ";" + (destPoint.y * 100).ToString("f0") + "}");
+        savelist.Add("{" + (presspoint.x * 100).ToString("f0") + ";" + (presspoint.y * 100).ToString("f0") + "}");
 
         int tempCount = 0;
         foreach (bool bl in posList)
