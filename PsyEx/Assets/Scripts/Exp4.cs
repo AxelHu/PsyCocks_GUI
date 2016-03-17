@@ -114,7 +114,6 @@ public class Exp4 : ExpObject
     {
         List<string> outputlist = new List<string>();
 		outputlist = new List<string> { "测试序号", "速度", "运动方向", "运动开始时间", "消失时间", "按键时间", "可见运动时间", "进入遮挡物到按键时间", "实际时间(毫秒)", "估计时间(毫秒)", "偏差率", "起始坐标", "目标坐标", "按键坐标", "实验开始时间", "实验结束时间", "实验用时" };
-		saveTime = DateTime.Now.ToString("yyyy-MM-dd");
 
 		saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
 		savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
