@@ -9,9 +9,9 @@ public class ExpObject : MonoBehaviour
 
 	protected UIPanel background;
 
-    public PsyEx.Mapper.Tester tester;
+	public PsyEx.Mapper.Tester tester;
 	public PsyEx.Mapper.ExConfig config;
-    public PsyEx.Mapper.HDConfig hdconfig;
+	public PsyEx.Mapper.HDConfig hdConfig;
 
 	public virtual void Init()
 	{
@@ -84,8 +84,10 @@ public class ExpObject : MonoBehaviour
 
 	public virtual void ClearUI()
 	{
-		Destroy (background.gameObject);
-		Destroy (popoutPic.gameObject);
+		if(background.gameObject != null)
+			Destroy (background.gameObject);
+		if(popoutPic.gameObject != null)
+			Destroy (popoutPic.gameObject);
 		GameObject[] goList = GameObject.FindGameObjectsWithTag ("Text");
 		foreach (GameObject go in goList)
 			Destroy (go);
