@@ -27,10 +27,15 @@ public class Exp5 : ExpObject
 	bool introPopoutFlag2 = false;
 
     protected string saveTime;
-    protected DateTime startTime;
-    protected DateTime endTime;
+    protected DateTime taskstartTime;
+    protected DateTime taskendTime;
+    protected System.Diagnostics.Stopwatch stopwatch=new System.Diagnostics.Stopwatch();//计时器
+    protected long totalReacttime = 0;
 
-    protected int taskno = 0;
+    protected int practiceTaskNo = 0;
+    protected int taskNo = 0;
+    protected int timeoutCount = 0;
+    protected int hitCount = 0;
 
     protected string savePath;
     protected string saveFilename;
@@ -58,8 +63,9 @@ public class Exp5 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
+        InitOutput();
+        taskstartTime = DateTime.Now;
 
-        startTime = DateTime.Now;
 		currentExpStatus = EXP5_STATUS.EXP_INIT;
 		waitTime = 0.2f;// pretend loading
 	}
@@ -67,7 +73,7 @@ public class Exp5 : ExpObject
     void InitOutput()
     {
         List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时" };
+        outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时(ms)", "实验开始时间", "实验结束时间", "实验用时" };
 
         saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
@@ -229,7 +235,7 @@ public class Exp5 : ExpObject
 		ShowPopout (picPath, 0, 0, resPopoutTime);
 	}
 
-    public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
+    public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, long reacttime)
     {
         List<string> savelist = new List<string>();
         savelist.Add(taskno.ToString());
@@ -239,6 +245,17 @@ public class Exp5 : ExpObject
         savelist.Add(keypress.ToString());
         savelist.Add(isright.ToString());
         savelist.Add(reacttime.ToString("f1"));
+        if (taskno == 64)
+        {
+            taskendTime = DateTime.Now;
+            TimeSpan ts = taskstartTime.Subtract(taskendTime).Duration();
+            savelist.Add(taskstartTime.ToString("HH:mm:ss"));
+            savelist.Add(taskendTime.ToString("HH:mm:ss"));
+            int duration;
+            duration = ts.Minutes * 60 + ts.Seconds;
+            savelist.Add(duration.ToString());
+        }
+
 
         Utils.DoFileOutputLine(savePath, saveFilename, savelist);
     }
@@ -319,7 +336,9 @@ public class Exp5 : ExpObject
 			if (gotoRunTipFlag) 
 			{
 				gotoRunTipFlag = false;
-				ClearUILeaveBackground ();
+                if (countObject != null)
+                    Destroy(countObject);
+                ClearUILeaveBackground ();
 				toRunPopout = PopoutWithText ("请按空格键进入正式任务", 99999, 0, 0);
 			}
 			if (gotoRunFlag) 
@@ -346,6 +365,7 @@ public class Exp5 : ExpObject
 			{
 				showFlag = false;
 				ansGetFlag = true;
+                stopwatch.Start();
 				ShowNextPractice ();
 				practiceShowCount--;
 			}
@@ -375,7 +395,7 @@ public class Exp5 : ExpObject
 			}
 			else if (timeCountdown < 0) 
 			{
-				RecordAns ();
+                RecordAns ();
 				if (practiceShowCount <= 0) 
 				{
 					ansResFlag = true;
@@ -394,15 +414,6 @@ public class Exp5 : ExpObject
 		}
 		else if(currentExpStatus == EXP5_STATUS.EXP_RUN)
 		{
-			if (ansResFlag) 
-			{
-				ansResFlag = false;
-				PopoutWithText ("限定时间内没有作答", ansResTime, 0, -100);
-				if(CheckSameShape(currentLeftPicName, currentRightPicName))
-					PopoutWithText ("左右两幅图片旋转后能够重合，应按F键", ansResTime, 0, -200);
-				else
-					PopoutWithText ("左右两幅图片旋转后不能重合，应按J键", ansResTime, 0, -200);
-			}
 			ansResShowCount -= Utils.GetDeltaTime ();
 			if (ansResShowCount > 0)
 				return;
@@ -421,6 +432,7 @@ public class Exp5 : ExpObject
 			{
 				showFlag = false;
 				ansGetFlag = true;
+                stopwatch.Start();
 				ShowNext ();
 			}
 			if (ansCheckFlag) 
@@ -456,17 +468,25 @@ public class Exp5 : ExpObject
 					//TODO: reset time count-down etc...
 					ResetParaForNext();
 					ansResShowCount = ansResTime;
-					ansResFlag = true;
 				}
 			}
 		}
 		else if(currentExpStatus == EXP5_STATUS.EXP_OVER)
 		{
 			ClearUILeaveBackground ();
-			if (overPicFlag) 
+            if (countObject != null)
+                Destroy(countObject);
+            if (overPicFlag) 
 			{
+                double avgReacttime;
+                double hitAcc;
+
+                avgReacttime = (double)totalReacttime / (double)(64 - timeoutCount);
+                hitAcc = (double)hitCount / 64;
 				overPicFlag = false;
 				PopoutWithText ("该任务完成, 按任意键结束", 99999, 0, 100f);
+                PopoutWithText("本次任务平均正确率" + (hitAcc * 100).ToString("f1") + "%，平均反应时" + avgReacttime.ToString("f0") + "毫秒", 99999, 0, 50f);
+
 			}
 		}
 	}
@@ -503,7 +523,8 @@ public class Exp5 : ExpObject
 					ansCheckFlag = true;
 					ansGetFlag = false;
 					isFPressed = true;
-				} 
+                    stopwatch.Stop();
+                } 
 				else if (Input.GetButtonDown ("ButtonJ"))
 				{
 					Debug.Log ("No");
@@ -511,7 +532,8 @@ public class Exp5 : ExpObject
 					ansCheckFlag = true;
 					ansGetFlag = false;
 					isJPressed = true;
-				}
+                    stopwatch.Stop();
+                }
 			}
 			if (checkGotoRunFlag) 
 			{
@@ -519,7 +541,8 @@ public class Exp5 : ExpObject
 				{
 					checkGotoRunFlag = false;
 					gotoRunFlag = true;
-				}
+                    stopwatch.Stop();
+                }
 					
 			}
 		}
@@ -534,7 +557,8 @@ public class Exp5 : ExpObject
 					ansCheckFlag = true;
 					ansGetFlag = false;
 					isFPressed = true;
-				} 
+                    stopwatch.Stop();
+                } 
 				else if (Input.GetButtonDown ("ButtonJ"))
 				{
 					Debug.Log ("No");
@@ -542,13 +566,17 @@ public class Exp5 : ExpObject
 					ansCheckFlag = true;
 					ansGetFlag = false;
 					isJPressed = true;
-				}
+                    stopwatch.Stop();
+                }
 			}
 		}
 		else if(currentExpStatus == EXP5_STATUS.EXP_OVER)
 		{
 			if (Input.anyKeyDown)
-				ExpManager.instance.GotoNextExp ();
+            {
+                ClearUILeaveBackground();
+                ExpManager.instance.GotoNextExp();
+            }
 		}
 	}	
 
@@ -716,21 +744,27 @@ public class Exp5 : ExpObject
 
 	public void RecordAns()
 	{
-        //TODO
-        //SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
-        /*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
-左侧图片：左侧图片的文件名称
-右侧图片：右侧图片的文件名称
-能否重合：左侧图片和右侧图片能否经过旋转后重合（0能，1不能 ）
-反应按键：按键为F则存储为0，按键为J则存储为1，超时则存储为-1
-是否正确：“能否重合”=“按键情况”则存储为1，否则存储为0
-反应时：图片呈现到被试按键的时间（单位毫秒）保留小数点后一位小数（例如2000.0），如果超时则存储为-1
-*/  
         int iscoincide;
         int keypress = -1;
         int isright;
+        long reacttime;
+        int taskno;
 
-        taskno++;
+        if (currentExpStatus==EXP5_STATUS.EXP_PRACTICE)
+        {
+            practiceTaskNo++;
+            taskno = practiceTaskNo;
+        }
+        else
+        {
+            taskNo++;
+            taskno = taskNo;
+        }
+
+        if (stopwatch.IsRunning)
+        {
+            stopwatch.Stop();
+        }
         iscoincide = (CheckSameShape(currentLeftPicName, currentRightPicName) == true ? 0 : 1);
         if (isFPressed)
         {
@@ -741,7 +775,26 @@ public class Exp5 : ExpObject
             keypress = 1;
         }
         isright = ((iscoincide == keypress) ? 1 : 0);
+        
+        if (keypress!=-1)
+        {
+            reacttime = stopwatch.ElapsedMilliseconds;
+            
+        }
+        else
+        {
+            reacttime = -1;
+            timeoutCount++;
+        }
+        stopwatch.Reset();
 
+        if (currentExpStatus==EXP5_STATUS.EXP_RUN)
+        {
+            hitCount += isright;
+            totalReacttime += reacttime;
+        }
+
+        SaveData(taskno, currentLeftPicName, currentRightPicName, iscoincide, keypress, isright, reacttime);
     }
 }
 

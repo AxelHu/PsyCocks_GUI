@@ -483,7 +483,7 @@ public class Exp4 : ExpObject
         }
         else
         {
-            savelist.Add((errorratio * 100).ToString("f1") + "%");
+            savelist.Add(errorratio.ToString("f3"));
         }
         savelist.Add("{" + (startpoint.x).ToString("f0") + ";" + (startpoint.y).ToString("f0") + "}");
         savelist.Add("{" + (destPoint.x * 100).ToString("f0") + ";" + (destPoint.y * 100).ToString("f0") + "}");
