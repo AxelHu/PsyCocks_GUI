@@ -26,16 +26,16 @@ public class Exp5 : ExpObject
 	bool introPopoutFlag = false;
 	bool introPopoutFlag2 = false;
 
-    protected string saveTime;
-    protected DateTime startTime;
-    protected DateTime endTime;
 
-    protected int taskno = 0;
+	protected string saveTime;
+	protected DateTime startTime;
+	protected DateTime endTime;
 
-    protected string savePath;
-    protected string saveFilename;
+	protected int taskno = 0;
 
-    float waitTime; // used in several states to manually record time pass
+	protected string savePath;
+	protected string saveFilename;
+	float waitTime; // used in several states to manually record time pass
 
 	public void InitPara()
 	{
@@ -58,22 +58,21 @@ public class Exp5 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
-
-        startTime = DateTime.Now;
+		startTime = DateTime.Now;
 		currentExpStatus = EXP5_STATUS.EXP_INIT;
 		waitTime = 0.2f;// pretend loading
 	}
 
-    void InitOutput()
-    {
-        List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时" };
+	void InitOutput()
+	{
+		List<string> outputlist = new List<string>();
+		outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时" };
 
-        saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
-        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveFilename = "T5-" + config.sortId + "-任务5-三维心理旋转测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
-        Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
-    }
+		saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
+		savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+		saveFilename = "T5-" + config.sortId + "-任务5-三维心理旋转测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+		Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
+	}
 
 	bool tempCheck = true;
 	public override void UpdateExpLogic ()
@@ -153,25 +152,25 @@ public class Exp5 : ExpObject
 
 	private void InitPrefab()
 	{
-        // leftPic
-        UnityEngine.Object prefab1 = Resources.Load ("Prefabs/Exp5Pic");
+		// leftPic
+		UnityEngine.Object prefab1 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go1 = GameObject.Instantiate (prefab1) as GameObject;
 		leftPic = go1.GetComponent<UISprite> ();
 		PanelData pd1 = new PanelData ();
 		pd1.Init (600, 600, 300, 0, 1);
 		leftPic.InitWithPic (pd1, null, "Pics/TaskR/1_x_15_a");
 		leftPic.gameObject.SetActive (false);
-
-        // rightPic
-        UnityEngine.Object prefab2 = Resources.Load ("Prefabs/Exp5Pic");
+		
+		// rightPic
+		UnityEngine.Object prefab2 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go2 = GameObject.Instantiate (prefab1) as GameObject;
 		rightPic = go2.GetComponent<UISprite> ();
 		PanelData pd2 = new PanelData ();
 		pd2.Init (600, 600, -300, 0, 1);
 		rightPic.InitWithPic (pd2, null, "Pics/TaskR/1_x_15_b");
 		rightPic.gameObject.SetActive (false);
-
-        UnityEngine.Object prefab3 = Resources.Load ("Prefabs/Exp5Pic");
+		
+		UnityEngine.Object prefab3 = Resources.Load ("Prefabs/Exp5Pic");
 		GameObject go3 = GameObject.Instantiate (prefab1) as GameObject;
 		popoutPic = go3.GetComponent<UISprite> ();
 		PanelData pd3 = new PanelData ();
@@ -228,20 +227,20 @@ public class Exp5 : ExpObject
 		string picPath = RespondPicPath (currentPicCombStatus, currentAnswerStatus);
 		ShowPopout (picPath, 0, 0, resPopoutTime);
 	}
+		
+	public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
+	{
+		List<string> savelist = new List<string>();
+		savelist.Add(taskno.ToString());
+		savelist.Add(leftimg);
+		savelist.Add(rightimg);
+		savelist.Add(iscoincide.ToString());
+		savelist.Add(keypress.ToString());
+		savelist.Add(isright.ToString());
+		savelist.Add(reacttime.ToString("f1"));
 
-    public void SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
-    {
-        List<string> savelist = new List<string>();
-        savelist.Add(taskno.ToString());
-        savelist.Add(leftimg);
-        savelist.Add(rightimg);
-        savelist.Add(iscoincide.ToString());
-        savelist.Add(keypress.ToString());
-        savelist.Add(isright.ToString());
-        savelist.Add(reacttime.ToString("f1"));
-
-        Utils.DoFileOutputLine(savePath, saveFilename, savelist);
-    }
+		Utils.DoFileOutputLine(savePath, saveFilename, savelist);
+	}
 
 	float pointTimeCount2;
 	bool pointShowFlag = false;
@@ -680,8 +679,9 @@ public class Exp5 : ExpObject
 
 	public override void ClearUI ()
 	{
-		ClearUILeaveBackground ();
-		background.gameObject.SetActive (false);
+		GameObject.Destroy (leftPic);
+		GameObject.Destroy (rightPic);
+		base.ClearUI ();
 	}
 
 	public void ClearUILeaveBackground()
@@ -716,9 +716,8 @@ public class Exp5 : ExpObject
 
 	public void RecordAns()
 	{
-        //TODO
-        //SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
-        /*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
+		//SaveData(int taskno, string leftimg, string rightimg, int iscoincide, int keypress, int isright, double reacttime)
+		/*序号：练习阶段为1,2,34，正式实验阶段为1,2,3…62,63,64。
 左侧图片：左侧图片的文件名称
 右侧图片：右侧图片的文件名称
 能否重合：左侧图片和右侧图片能否经过旋转后重合（0能，1不能 ）
@@ -726,22 +725,22 @@ public class Exp5 : ExpObject
 是否正确：“能否重合”=“按键情况”则存储为1，否则存储为0
 反应时：图片呈现到被试按键的时间（单位毫秒）保留小数点后一位小数（例如2000.0），如果超时则存储为-1
 */  
-        int iscoincide;
-        int keypress = -1;
-        int isright;
+		int iscoincide;
+		int keypress = -1;
+		int isright;
 
-        taskno++;
-        iscoincide = (CheckSameShape(currentLeftPicName, currentRightPicName) == true ? 0 : 1);
-        if (isFPressed)
-        {
-            keypress = 0;
-        }
-        else if (isJPressed)
-        {
-            keypress = 1;
-        }
-        isright = ((iscoincide == keypress) ? 1 : 0);
+		taskno++;
+		iscoincide = (CheckSameShape(currentLeftPicName, currentRightPicName) == true ? 0 : 1);
+		if (isFPressed)
+		{
+			keypress = 0;
+		}
+		else if (isJPressed)
+		{
+			keypress = 1;
+		}
+		isright = ((iscoincide == keypress) ? 1 : 0);
 
-    }
+	}
 }
 

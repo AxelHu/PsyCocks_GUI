@@ -77,16 +77,16 @@ public class Exp4 : ExpObject
 	protected float ballLayer = 4f;
 	protected float blockerLayer = 30f;
 
-    protected string saveTime;
+	protected string saveTime;
     protected DateTime startTime;
     protected DateTime pressTime;
     protected DateTime disappearTime;
-    protected DateTime taskstartTime;
-    protected DateTime taskendTime;
+	protected DateTime taskstartTime;
+	protected DateTime taskendTime;
 
-    protected string savePath;
-    protected string saveFilename;
-    protected int taskno = 0;
+	protected string savePath;
+	protected string saveFilename;
+	protected int taskno = 0;
 
     BALL_BLOCKER_RELATION ballPosCheck;
 	//-------------------
@@ -98,7 +98,7 @@ public class Exp4 : ExpObject
 		InitPrefab ();
 		InitRan ();
         InitOutput ();
-        taskstartTime = DateTime.Now;
+		taskstartTime = DateTime.Now;
 
 		int tempCount = 0;
 		foreach (bool bl in posList) 
@@ -113,12 +113,13 @@ public class Exp4 : ExpObject
     void InitOutput()
     {
         List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "测试序号", "速度", "运动方向", "运动开始时间", "消失时间", "按键时间", "可见运动时间", "进入遮挡物到按键时间", "实际时间(毫秒)", "估计时间(毫秒)", "偏差率", "起始坐标", "目标坐标", "按键坐标", "实验开始时间", "实验结束时间", "实验用时" };
+		outputlist = new List<string> { "测试序号", "速度", "运动方向", "运动开始时间", "消失时间", "按键时间", "可见运动时间", "进入遮挡物到按键时间", "实际时间(毫秒)", "估计时间(毫秒)", "偏差率", "起始坐标", "目标坐标", "按键坐标", "实验开始时间", "实验结束时间", "实验用时" };
+		saveTime = DateTime.Now.ToString("yyyy-MM-dd");
 
-        saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
-        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveFilename = "T4-" + config.sortId + "-任务4-速度知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
-        Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
+		saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
+		savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+		saveFilename = "T4-" + config.sortId + "-任务4-速度知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+		Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
     }
 
 	public override void UpdateExpLogic ()
@@ -408,25 +409,25 @@ public class Exp4 : ExpObject
 
         pressTime = DateTime.Now;
 
-        Vector2 startP = new Vector2(0, 0);
+		Vector2 startP = new Vector2(0, 0);
         string movedirection="";
         switch(currentStartPos)
         {
             case "left":
-                movedirection = "水平向右";
-                startP = new Vector2(-ballToCenterDistance, 0);
+				movedirection = "水平向右";
+				startP = new Vector2(-ballToCenterDistance, 0);
                 break;
             case "right":
-                movedirection = "水平向左";
-                startP = new Vector2(ballToCenterDistance, 0);
+				movedirection = "水平向左";
+				startP = new Vector2(ballToCenterDistance, 0);
                 break;
             case "up":
-                movedirection = "竖直向下";
-                startP = new Vector2(0, ballToCenterDistance);
+				movedirection = "竖直向下";
+				startP = new Vector2(0, ballToCenterDistance);
                 break;
             case "down":
-                movedirection = "竖直向上";
-                startP = new Vector2(0, -ballToCenterDistance);
+				movedirection = "竖直向上";
+				startP = new Vector2(0, -ballToCenterDistance);
                 break;
             default:
                 break;
@@ -443,8 +444,8 @@ public class Exp4 : ExpObject
         exacttime = reacttime + movetime;
         estimatetime = blockerPixelRad / currentBallSpeed;
 
-        taskno++;
-        SaveData (taskno, (int)currentBallSpeed ,movedirection,startTime,disappearTime,pressTime,movetime*1000,reacttime*1000,exacttime*1000,estimatetime*1000, CalCorrectRate(), startP, p1);
+		taskno++;
+		SaveData (taskno, (int)currentBallSpeed ,movedirection,startTime,disappearTime,pressTime,movetime*1000,reacttime*1000,exacttime*1000,estimatetime*1000, CalCorrectRate(), startP, p1);
 
 	}
 
@@ -454,9 +455,9 @@ public class Exp4 : ExpObject
 		{
 			Vector2 p1 = Utils.GetV2FromV3 (ballPic.transform.position);
 			Vector2 p2 = Utils.GetV2FromV3 (blockerPic.transform.position);
-            Vector2 dp = p1 - p2;
-            float dis = 0;
-            dis = (dp.x == 0 ? dp.y : dp.x);
+			Vector2 dp = p1 - p2;
+			float dis = 0;
+			dis = (dp.x == 0 ? dp.y : dp.x);
 			return dis / blockerPixelRad * 100f;
 		}
 		else
@@ -470,43 +471,43 @@ public class Exp4 : ExpObject
         savelist.Add(taskno.ToString());
         savelist.Add(speed.ToString("f0"));
         savelist.Add(movedirection);
-        savelist.Add(starttime.ToString("HH:mm:ss"));
-        savelist.Add(disappartime.ToString("HH:mm:ss"));
-        savelist.Add(presstime.ToString("HH:mm:ss"));
+		savelist.Add(starttime.ToString("HH:mm:ss"));
+		savelist.Add(disappartime.ToString("HH:mm:ss"));
+		savelist.Add(presstime.ToString("HH:mm:ss"));
         savelist.Add(movetime.ToString("f1"));
         savelist.Add(reacttime.ToString("f1"));
         savelist.Add(exacttime.ToString("f1"));
         savelist.Add(estimatetime.ToString("f1"));
-        if (errorratio == -1)
-        {
-            savelist.Add(errorratio.ToString("f0"));
-        }
-        else
-        {
-            savelist.Add((errorratio * 100).ToString("f1") + "%");
-        }
-        savelist.Add("{" + (startpoint.x).ToString("f0") + ";" + (startpoint.y).ToString("f0") + "}");
-        savelist.Add("{" + (destPoint.x * 100).ToString("f0") + ";" + (destPoint.y * 100).ToString("f0") + "}");
-        savelist.Add("{" + (presspoint.x * 100).ToString("f0") + ";" + (presspoint.y * 100).ToString("f0") + "}");
+		if (errorratio == -1)
+		{
+			savelist.Add(errorratio.ToString("f0"));
+		}
+		else
+		{
+			savelist.Add((errorratio * 100).ToString("f1") + "%");
+		}
+		savelist.Add("{" + (startpoint.x).ToString("f0") + ";" + (startpoint.y).ToString("f0") + "}");
+		savelist.Add("{" + (destPoint.x * 100).ToString("f0") + ";" + (destPoint.y * 100).ToString("f0") + "}");
+		savelist.Add("{" + (presspoint.x * 100).ToString("f0") + ";" + (presspoint.y * 100).ToString("f0") + "}");
 
-        int tempCount = 0;
-        foreach (bool bl in posList)
-        {
-            if (bl)
-                tempCount++;
-        }
-        if (taskno== repeatTime * (tempCount) * 3)
-        {
-            taskendTime = DateTime.Now;
-            TimeSpan ts = taskstartTime.Subtract(taskendTime).Duration();
-            savelist.Add(taskstartTime.ToString("HH:mm:ss"));
-            savelist.Add(taskendTime.ToString("HH:mm:ss"));
-            int duration;
-            duration = ts.Minutes * 60 + ts.Seconds;
-            savelist.Add(duration.ToString());
-        }
+		int tempCount = 0;
+		foreach (bool bl in posList)
+		{
+			if (bl)
+				tempCount++;
+		}
+		if (taskno== repeatTime * (tempCount) * 3)
+		{
+			taskendTime = DateTime.Now;
+			TimeSpan ts = taskstartTime.Subtract(taskendTime).Duration();
+			savelist.Add(taskstartTime.ToString("HH:mm:ss"));
+			savelist.Add(taskendTime.ToString("HH:mm:ss"));
+			int duration;
+			duration = ts.Minutes * 60 + ts.Seconds;
+			savelist.Add(duration.ToString());
+		}
 
-        Utils.DoFileOutputLine(savePath, saveFilename, savelist);
+		Utils.DoFileOutputLine(savePath, saveFilename, savelist);
     }
 
 	public enum EXP4_STATUS
@@ -521,7 +522,7 @@ public class Exp4 : ExpObject
 		
 	public override void EndExp ()
 	{
-        base.EndExp ();
+		base.EndExp ();
 		currentExpStatus = EXP4_STATUS.EXP_OVER;
 		overPicFlag = true;
 	}
