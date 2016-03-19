@@ -399,7 +399,7 @@ public class Exp4 : ExpObject
 		if (ballPosCheck == BALL_BLOCKER_RELATION.IN) 
 		{
 			if (biasFeedbackFlag)
-				PopoutWithText ("偏差率-" + CalCorrectRate(), waitTimeInBetween, 0, 100f);
+				PopoutWithText ("偏差率" + (CalCorrectRate()*100).ToString("f1")+"%", waitTimeInBetween, 0, 100f);
 		}
 		else
 		{
@@ -457,7 +457,11 @@ public class Exp4 : ExpObject
 			Vector2 dp = p1 - p2;
 			float dis = 0;
 			dis = (dp.x == 0 ? dp.y : dp.x);
-			return dis / blockerPixelRad * 100f;
+            if ((currentStartPos=="up")|| (currentStartPos == "left"))
+            {
+                dis = -dis;
+            }
+            return dis / blockerPixelRad * 100f;
 		}
 		else
 			return -1;
@@ -483,7 +487,7 @@ public class Exp4 : ExpObject
 		}
 		else
 		{
-			savelist.Add((errorratio * 100).ToString("f1") + "%");
+			savelist.Add(errorratio.ToString("f3"));
 		}
 		savelist.Add("{" + (startpoint.x).ToString("f0") + ";" + (startpoint.y).ToString("f0") + "}");
 		savelist.Add("{" + (destPoint.x * 100).ToString("f0") + ";" + (destPoint.y * 100).ToString("f0") + "}");

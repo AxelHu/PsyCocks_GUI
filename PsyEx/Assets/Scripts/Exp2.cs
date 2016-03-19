@@ -862,14 +862,6 @@ public class Exp2 : ExpObject
 
     public void RecordAns()
     {
-        /*HoldNum：表示第几次时间估计（例如，1,2……；最大次数为待估事件数 乘以 循环次数）
-HoldTime：此时时间估计任务的具体时间（单位：“毫秒”；例如：2000）
-StartTime：此次时间估计开始的系统时间（绿点闪现时的系统时间，精确到毫秒，例如：20:52:44：000）
-Suretime：此次时间估计被试按“8”号键的系统时间（精确到毫秒，例如：20:52:48：000；如果反应超时，则显示“-1”）
-Test_RT：绿点呈现到操作者按键反应之间的时间间隔，单位：“毫秒”，保留整数（例如：2500；如果反应超时，则显示“-1”）
-HoldError：Test_RT 减去HoldTime，单位：“毫秒”，保留整数（例如：-300；如果反应超时，则显示“-1”）
-Error_Ratio：HoldError÷HoldTime，单位：“毫秒”,保留小数点后两位小数（例如：-0.92；如果反应超时，则显示“-1”） 
-*/
         double Test_RT = -1;
         double HoldError = -1;
         double Error_Ratio = -1;
@@ -881,7 +873,10 @@ Error_Ratio：HoldError÷HoldTime，单位：“毫秒”,保留小数点后两�
             HoldError = Test_RT - estiTimeThisRound * 1000;
             Error_Ratio = HoldError / (estiTimeThisRound * 1000);
         }
-
+        else
+        {
+            sureTime = new System.DateTime();
+        }
         SaveHoldData(holdnum, estiTimeThisRound*1000 , startTime, sureTime, Test_RT, HoldError, Error_Ratio);
 
     }

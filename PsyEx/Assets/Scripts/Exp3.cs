@@ -120,6 +120,10 @@ public class Exp3 : ExpObject
 	public float waitForInputTime;
 
     protected int pointnum = 0;
+    protected int eventnum = 0;
+
+    protected System.DateTime startTime;
+    protected System.DateTime sureTime;
 
     protected Vector2 lastObjPoint = new Vector2(3f, 0);
     protected Vector2 lastPostPoint = new Vector2(0, 0);
@@ -128,7 +132,7 @@ public class Exp3 : ExpObject
     private string saveTime;
     private string savePath;
     private string saveTraceFilename;
-    private string saveHoldFilename;
+    private string saveEventFilename;
 
 
     public GameObject textObject;
@@ -144,7 +148,7 @@ public class Exp3 : ExpObject
         {
             InitTraceOutput();
         }
-        InitHoldOutput();
+        InitEventOutput();
 
     }
 
@@ -159,15 +163,15 @@ public class Exp3 : ExpObject
         Utils.DoFileOutputLine(savePath, saveTraceFilename, outputlist);
     }
 
-    void InitHoldOutput()
+    void InitEventOutput()
     {
         List<string> outputlist = new List<string>();
-        outputlist = new List<string> { "HoldNum", "HoldTime", "StartTime", "SureTime", "Test_RT", "HoldError", "Error_Ratio" };
+        outputlist = new List<string> { "EventNum", "EventType", "StartTime", "SureTime", "Event_RT", "ButtonNo", "Event_Acc" };
 
         saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveHoldFilename = "T3-Hold-" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
-        Utils.DoFileOutputLine(savePath, saveHoldFilename, outputlist);
+        saveEventFilename = "T3-Event-" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveEventFilename, outputlist);
     }
 
 
@@ -375,12 +379,14 @@ public class Exp3 : ExpObject
 				{
 					buttonDownFlag = true;
 					button8Down = true;
-				}
+                    sureTime = System.DateTime.Now;
+                }
 				else if(Input.GetButtonDown("Button6"))
 				{
 					buttonDownFlag = true;
 					button6Donw = true;
-				}
+                    sureTime = System.DateTime.Now;
+                }
 					
 			}
 		}
@@ -419,7 +425,8 @@ public class Exp3 : ExpObject
 			if (roundStartPauseFlag && totalTimeThisRun > timeBetween) 
 			{
 				roundStartPauseFlag = false;
-				//ChangeTextTip ("估计" + estiTimeThisRound + "秒", textTipTime);
+                //ChangeTextTip ("估计" + estiTimeThisRound + "秒", textTipTime);
+                startTime = System.DateTime.Now;
 				ShowThisRun();
 				checkGreenLightFlag = true;
 			}
@@ -439,10 +446,10 @@ public class Exp3 : ExpObject
 				roundFinishFlag = true;
 			if (roundFinishFlag) 
 			{
-				//roundFinishFlag = false;
-				//checkMovementFlag = false;
-				SaveData ();
-				HidePlaHel ();
+                //roundFinishFlag = false;
+                //checkMovementFlag = false;
+                RecordAns();
+                HidePlaHel ();
 				if (buttonDownFlag)
 				{
 					if (feedback) 
@@ -914,6 +921,44 @@ public class Exp3 : ExpObject
         savelist.Add((postSpeed.y).ToString("f0"));
 
         Utils.DoFileOutputLine(savePath, saveTraceFilename, savelist);
+    }
+
+    public void SaveEventData(int eventNum, int eventType, System.DateTime startTime, System.DateTime sureTime, double event_RT, int buttonNo, int event_Acc)
+    {
+        List<string> savelist = new List<string>();
+        savelist.Add(eventNum.ToString());
+        savelist.Add(eventType.ToString());
+        savelist.Add(startTime.ToString("HH:mm:ss"));
+        savelist.Add(sureTime.ToString("HH:mm:ss"));
+        savelist.Add(event_RT.ToString("f0"));
+        savelist.Add(buttonNo.ToString());
+        savelist.Add(event_Acc.ToString());
+
+        Utils.DoFileOutputLine(savePath, saveEventFilename, savelist);
+    }
+
+
+    public void RecordAns()
+    {
+        int EventType;
+        double Event_rt = -1;
+        int ButtonNo = -1;
+        int Event_acc = 0;
+
+        eventnum++;
+        EventType = plaHelPic;
+
+        if (buttonDownFlag)
+        {
+            Event_rt = (totalTimeThisRun - timeBetween)*1000;
+            ButtonNo = (button6Donw ? 1 : 0);
+            Event_acc = (EventType == ButtonNo) ? 1 : 0;
+        }
+        else
+        {
+            sureTime = new System.DateTime();
+        }
+        SaveEventData(eventnum, EventType, startTime, sureTime, Event_rt, ButtonNo, Event_acc);
     }
 
 }
