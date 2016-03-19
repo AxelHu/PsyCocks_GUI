@@ -420,7 +420,7 @@ public class Exp2 : ExpObject
 			if (totalTimeThisRun > 2 * roundRestTime && roundInitFlag)
 			{
 				roundInitFlag = false;
-				greenLight.SetActive (true);
+                GreenLightFlash();
 				checkGreenLightFlag = true;
                 startTime = System.DateTime.Now;
 			}
@@ -432,7 +432,7 @@ public class Exp2 : ExpObject
 				roundFinishFlag = true;
 			if (roundFinishFlag) 
 			{
-                HideText(targetText);
+                HideObject(targetText);
 				//roundFinishFlag = false;
 				//checkMovementFlag = false;
 				RecordAns ();
@@ -449,7 +449,7 @@ public class Exp2 : ExpObject
 					if(feedback)
 						ChangeTextTip ("反应超时", textTipTime);
 				}
-				greenLight.SetActive (false);
+				//greenLight.SetActive (false);
 				if (repeatCount >= loopTime * estimateNum) 
 				{
 					EndExp ();
@@ -780,7 +780,7 @@ public class Exp2 : ExpObject
 		targetText.SetActive (true);
     }
 
-    public void HideText(GameObject go)
+    public void HideObject(GameObject go)
     {
         if (go != null)
 			go.SetActive (false);
@@ -789,13 +789,20 @@ public class Exp2 : ExpObject
 	public void ChangeTextTip(string text, float time)
 	{
         ActiveText(text);
-		StartCoroutine (HideTextTip (time, targetText));
+		StartCoroutine (HideWait (time, targetText));
 	}
-	public IEnumerator HideTextTip(float time, GameObject go)
+
+	public IEnumerator HideWait(float time, GameObject go)
 	{
 		yield return new WaitForSeconds (time);
-        HideText(go);
+        HideObject(go);
 	}
+
+    public void GreenLightFlash()
+    {
+        greenLight.SetActive(true);
+        StartCoroutine(HideWait(0.5f, greenLight));
+    }
 
     public void RecordPoint()
     {
