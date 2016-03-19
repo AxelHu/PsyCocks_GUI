@@ -603,7 +603,7 @@ public class Exp1 : ExpObject
         lastObjPoint = objPoint;
         lastPostPoint = postPoint;
         //postRotateSpeed;
-        SaveData(pointnum, nowtime, objPoint, postPoint, currentTargetRollAngle, null, distance, rotateError, hit, dObjPoint, dPostPoint, null);
+        SaveData(pointnum, nowtime, objPoint, postPoint, currentTargetRollAngle, 0, distance, rotateError, hit, dObjPoint, dPostPoint, 0);
     }
 
 

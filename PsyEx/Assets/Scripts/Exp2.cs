@@ -147,7 +147,7 @@ public class Exp2 : ExpObject
 
         saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveTraceFilename = "T2-Trace" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        saveTraceFilename = "T2-Trace-" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
         Utils.DoFileOutputLine(savePath, saveTraceFilename, outputlist);
     }
 
@@ -158,7 +158,7 @@ public class Exp2 : ExpObject
 
         saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveHoldFilename = "T2-Hold" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        saveHoldFilename = "T2-Hold-" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
         Utils.DoFileOutputLine(savePath, saveHoldFilename, outputlist);
     }
 
@@ -413,7 +413,7 @@ public class Exp2 : ExpObject
 			if (roundStartPauseFlag && totalTimeThisRun > roundRestTime) 
 			{
 				roundStartPauseFlag = false;
-				ChangeTextTip ("估计" + estiTimeThisRound + "秒", textTipTime);
+				ActiveText (estiTimeThisRound + "s");
 			}
 			totalTimeExp2 += Utils.GetDeltaTime ();
 			totalTimeThisRun += Utils.GetDeltaTime ();
@@ -432,6 +432,7 @@ public class Exp2 : ExpObject
 				roundFinishFlag = true;
 			if (roundFinishFlag) 
 			{
+                HideText(targetText);
 				//roundFinishFlag = false;
 				//checkMovementFlag = false;
 				RecordAns ();
@@ -439,8 +440,8 @@ public class Exp2 : ExpObject
 				{
 					if (feedback) 
 					{
-						float time = totalTimeThisRun - estiTimeThisRound - 2 * roundRestTime;
-						ChangeTextTip ("知觉时间\n" + time, textTipTime);
+						float time = totalTimeThisRun -  2 * roundRestTime;
+						ChangeTextTip ("知觉时间\n" + (time * 1000).ToString("f0") + "ms", textTipTime);
 					}
 				}
 				else
@@ -772,18 +773,28 @@ public class Exp2 : ExpObject
 		return omega;
 	}
 
-	public void ChangeTextTip(string text, float time)
-	{
-		TextMesh txm = targetText.GetComponent<TextMesh> ();
+    public void ActiveText(string text)
+    {
+        TextMesh txm = targetText.GetComponent<TextMesh> ();
 		txm.text = text;
 		targetText.SetActive (true);
+    }
+
+    public void HideText(GameObject go)
+    {
+        if (go != null)
+			go.SetActive (false);
+    }
+
+	public void ChangeTextTip(string text, float time)
+	{
+        ActiveText(text);
 		StartCoroutine (HideTextTip (time, targetText));
 	}
 	public IEnumerator HideTextTip(float time, GameObject go)
 	{
 		yield return new WaitForSeconds (time);
-		if (go != null)
-			go.SetActive (false);
+        HideText(go);
 	}
 
     public void RecordPoint()
@@ -828,6 +839,20 @@ public class Exp2 : ExpObject
         Utils.DoFileOutputLine(savePath, saveTraceFilename, savelist);
     }
 
+    public void SaveHoldData(int holdNum, double holdTime, System.DateTime startTime, System.DateTime sureTime, double test_RT, double holdError, double error_Ratio)
+    {
+        List<string> savelist = new List<string>();
+        savelist.Add(holdNum.ToString());
+        savelist.Add(holdTime.ToString("f0"));
+        savelist.Add(startTime.ToString("HH:mm:ss"));
+        savelist.Add(sureTime.ToString("HH:mm:ss"));
+        savelist.Add(test_RT.ToString("f0"));
+        savelist.Add(holdError.ToString("f0"));
+        savelist.Add(error_Ratio.ToString("f2"));
+
+        Utils.DoFileOutputLine(savePath, saveHoldFilename, savelist);
+    }
+
     public void RecordAns()
     {
         /*HoldNum：表示第几次时间估计（例如，1,2……；最大次数为待估事件数 乘以 循环次数）
@@ -838,15 +863,19 @@ Test_RT：绿点呈现到操作者按键反应之间的时间间隔，单位：�
 HoldError：Test_RT 减去HoldTime，单位：“毫秒”，保留整数（例如：-300；如果反应超时，则显示“-1”）
 Error_Ratio：HoldError÷HoldTime，单位：“毫秒”,保留小数点后两位小数（例如：-0.92；如果反应超时，则显示“-1”） 
 */
-        double Test_RT;
-        double HoldError;
-        double Error_Ratio;
+        double Test_RT = -1;
+        double HoldError = -1;
+        double Error_Ratio = -1;
 
         holdnum++;
-        Test_RT = totalTimeThisRun - estiTimeThisRound - 2 * roundRestTime;
-        HoldError = Test_RT - estiTimeThisRound;
-        Error_Ratio = HoldError / estiTimeThisRound;
+        if (buttonDownFlag)
+        {
+            Test_RT = (totalTimeThisRun - 2 * roundRestTime)*1000;
+            HoldError = Test_RT - estiTimeThisRound * 1000;
+            Error_Ratio = HoldError / (estiTimeThisRound * 1000);
+        }
 
+        SaveHoldData(holdnum, estiTimeThisRound*1000 , startTime, sureTime, Test_RT, HoldError, Error_Ratio);
 
     }
 }

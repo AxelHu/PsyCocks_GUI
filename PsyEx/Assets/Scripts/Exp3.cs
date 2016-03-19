@@ -155,7 +155,7 @@ public class Exp3 : ExpObject
 
         saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveTraceFilename = "T3-Trace" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        saveTraceFilename = "T3-Trace-" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
         Utils.DoFileOutputLine(savePath, saveTraceFilename, outputlist);
     }
 
@@ -166,7 +166,7 @@ public class Exp3 : ExpObject
 
         saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
         savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
-        saveHoldFilename = "T3-Hold" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        saveHoldFilename = "T3-Hold-" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
         Utils.DoFileOutputLine(savePath, saveHoldFilename, outputlist);
     }
 
