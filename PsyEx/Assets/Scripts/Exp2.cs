@@ -107,7 +107,22 @@ public class Exp2 : ExpObject
 	public float estiTimeThisRound;
 	public string loopNoTag;
 
-	public float textTipTime = 2f;
+    protected int pointnum = 0;
+    protected int holdnum = 0;
+
+    protected System.DateTime startTime;
+    protected System.DateTime sureTime;
+
+    protected Vector2 lastObjPoint = new Vector2(3f, 0);
+    protected Vector2 lastPostPoint = new Vector2(0, 0);
+    protected double lastRotateAngle = 0;
+
+    private string saveTime;
+    private string savePath;
+    private string saveTraceFilename;
+    private string saveHoldFilename;
+
+    public float textTipTime = 2f;
 	public float roundRestTime = 2f;
 
 	public override void Init ()
@@ -116,11 +131,38 @@ public class Exp2 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
+
+        if (config.config2.mainTest)
+        {
+            InitTraceOutput();
+        }
+        InitHoldOutput();
+
 	}
 
+    void InitTraceOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "PointNum", "PointTime", "ObjPointX", "ObjPointY", "PostPointX", "PostPointY", "Distance", "Hit", "ObjSpeedX", "ObjSpeedY", "PostSpeedX", "PostSpeedY" };
 
+        saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveTraceFilename = "T2-Trace" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveTraceFilename, outputlist);
+    }
 
-	public void InitPara()
+    void InitHoldOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "HoldNum", "HoldTime", "StartTime", "SureTime", "Test_RT", "HoldError", "Error_Ratio" };
+
+        saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveHoldFilename = "T2-Hold" + config.sortId + "-任务2-操作力保持及时间知觉能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveHoldFilename, outputlist);
+    }
+
+    public void InitPara()
 	{
 		if (config.config2.backgroundColor == "灰黑")
 			backgroundColor = new Color (48f / 255f, 48f / 255f, 48f / 255f);
@@ -331,6 +373,7 @@ public class Exp2 : ExpObject
 			{
 				if (Input.GetButtonDown ("Button8")) 
 				{
+                    sureTime = System.DateTime.Now;
 					buttonDownFlag = true;
 				}
 			}
@@ -379,6 +422,7 @@ public class Exp2 : ExpObject
 				roundInitFlag = false;
 				greenLight.SetActive (true);
 				checkGreenLightFlag = true;
+                startTime = System.DateTime.Now;
 			}
 			AimerMove ();
 			TargetMove ();
@@ -390,7 +434,7 @@ public class Exp2 : ExpObject
 			{
 				//roundFinishFlag = false;
 				//checkMovementFlag = false;
-				SaveData ();
+				RecordAns ();
 				if (buttonDownFlag)
 				{
 					if (feedback) 
@@ -711,7 +755,7 @@ public class Exp2 : ExpObject
 	public GameObject greenLight;
 	public GameObject targetText;
 
-	public void InitTarget()
+    public void InitTarget()
 	{
 		UnityEngine.Object prefab1 = Resources.Load ("Prefabs/TargetWithLight");
 		target = GameObject.Instantiate (prefab1) as GameObject;
@@ -741,5 +785,69 @@ public class Exp2 : ExpObject
 		if (go != null)
 			go.SetActive (false);
 	}
+
+    public void RecordPoint()
+    {
+        System.DateTime nowtime;
+        Vector2 objPoint = Utils.GetV2FromV3(aimer.transform.position);
+        Vector2 postPoint = Utils.GetV2FromV3(target.transform.position);
+        Vector2 dObjPoint = (objPoint - lastObjPoint) * 100;
+        Vector2 dPostPoint = (postPoint - lastPostPoint) * 100;
+        double distance;
+        int hit;
+
+        pointnum++;
+        nowtime = System.DateTime.Now;
+        objPoint *= 100;
+        postPoint *= 100;
+        distance = Vector2.Distance(objPoint, postPoint);
+        hit = ((distance < errDistance) ? 1 : 0);
+        dObjPoint /= 40;
+        dPostPoint /= 40;
+        lastObjPoint = objPoint;
+        lastPostPoint = postPoint;
+        SaveTraceData(pointnum, nowtime, objPoint, postPoint, distance, hit, dObjPoint, dPostPoint);
+    }
+
+    public void SaveTraceData(int pointNum, System.DateTime pointTime, Vector2 objPoint, Vector2 postPoint, double distance, int hit, Vector2 objSpeed, Vector2 postSpeed )
+    {
+        List<string> savelist = new List<string>();
+        savelist.Add(pointNum.ToString());
+        savelist.Add(pointTime.ToString("HH:mm:ss"));
+        savelist.Add((objPoint.x).ToString("f0"));
+        savelist.Add((objPoint.y).ToString("f0"));
+        savelist.Add((postPoint.x).ToString("f0"));
+        savelist.Add((postPoint.y).ToString("f0"));
+        savelist.Add(distance.ToString("f2"));
+        savelist.Add(hit.ToString());
+        savelist.Add((objSpeed.x).ToString("f0"));
+        savelist.Add((objSpeed.y).ToString("f0"));
+        savelist.Add((postSpeed.x).ToString("f0"));
+        savelist.Add((postSpeed.y).ToString("f0"));
+
+        Utils.DoFileOutputLine(savePath, saveTraceFilename, savelist);
+    }
+
+    public void RecordAns()
+    {
+        /*HoldNum：表示第几次时间估计（例如，1,2……；最大次数为待估事件数 乘以 循环次数）
+HoldTime：此时时间估计任务的具体时间（单位：“毫秒”；例如：2000）
+StartTime：此次时间估计开始的系统时间（绿点闪现时的系统时间，精确到毫秒，例如：20:52:44：000）
+Suretime：此次时间估计被试按“8”号键的系统时间（精确到毫秒，例如：20:52:48：000；如果反应超时，则显示“-1”）
+Test_RT：绿点呈现到操作者按键反应之间的时间间隔，单位：“毫秒”，保留整数（例如：2500；如果反应超时，则显示“-1”）
+HoldError：Test_RT 减去HoldTime，单位：“毫秒”，保留整数（例如：-300；如果反应超时，则显示“-1”）
+Error_Ratio：HoldError÷HoldTime，单位：“毫秒”,保留小数点后两位小数（例如：-0.92；如果反应超时，则显示“-1”） 
+*/
+        double Test_RT;
+        double HoldError;
+        double Error_Ratio;
+
+        holdnum++;
+        Test_RT = totalTimeThisRun - estiTimeThisRound - 2 * roundRestTime;
+        HoldError = Test_RT - estiTimeThisRound;
+        Error_Ratio = HoldError / estiTimeThisRound;
+
+
+    }
 }
 

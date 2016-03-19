@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Exp1 : ExpObject
 {
@@ -88,6 +89,16 @@ public class Exp1 : ExpObject
 	public float elliRadX = 4f;
 	public float eightRad = 2f;
 
+    protected int pointnum = 0;
+
+    protected Vector2 lastObjPoint = new Vector2(3f, 0);
+    protected Vector2 lastPostPoint = new Vector2(0, 0);
+    protected double lastRotateAngle = 0;
+
+    protected string saveTime;
+    protected string savePath;
+    protected string saveFilename;
+
 	public float totalTimePaused;
 	public GameObject pauseTip;
 	public bool targetPauseFlag;
@@ -99,11 +110,21 @@ public class Exp1 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
+        InitOutput();
 	}
 
+    void InitOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "PointNum", "PointTime", "ObjPointX", "ObjPointY", "PostPointX", "PostPointY", "ObjRotate", "PostRotate", "Distance", "RotateError", "Hit", "ObjSpeedX", "ObjSpeedY", "PostSpeedX", "PostSpeedY", "PostRotateSpeed" };
 
+        saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveFilename = "T1-" + config.sortId + "-任务1-目标跟踪能力测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveFilename, outputlist);
+    }
 
-	public void InitPara()
+    public void InitPara()
 	{
 		if (config.config1.backgroundColor == "灰黑")
 			backgroundColor = new Color (48f / 255f, 48f / 255f, 48f / 255f);
@@ -280,7 +301,7 @@ public class Exp1 : ExpObject
 			{
 				roundFinishFlag = false;
 				checkMovementFlag = false;
-				SaveData ();
+				//SaveData ();
 				if (repeatCount >= repeatTime) 
 				{
 					EndExp ();
@@ -535,12 +556,59 @@ public class Exp1 : ExpObject
 		overPicFlag = true;
 	}
 
-	public void SaveData()
+	public void SaveData(int pointNum, System.DateTime pointTime, Vector2 objPoint, Vector2 postPoint, double objRotate, double postRotate, double distance, double rotateError, int hit, Vector2 objSpeed, Vector2 postSpeed, double postRotateSpeed)
 	{
-		//TODO
-	}
+        List<string> savelist = new List<string>();
+        savelist.Add(pointNum.ToString());
+        savelist.Add(pointTime.ToString("HH:mm:ss"));
+        savelist.Add((objPoint.x).ToString("f0"));
+        savelist.Add((objPoint.y).ToString("f0"));
+        savelist.Add((postPoint.x).ToString("f0"));
+        savelist.Add((postPoint.y).ToString("f0"));
+        savelist.Add(objRotate.ToString("f1"));
+        savelist.Add(postRotate.ToString("f1"));
+        savelist.Add(distance.ToString("f2"));
+        savelist.Add(rotateError.ToString("f1"));
+        savelist.Add(hit.ToString());
+        savelist.Add((objSpeed.x).ToString("f0"));
+        savelist.Add((objSpeed.y).ToString("f0"));
+        savelist.Add((postSpeed.x).ToString("f0"));
+        savelist.Add((postSpeed.y).ToString("f0"));
+        savelist.Add(postRotateSpeed.ToString("f1"));
 
-	public override void ClearUI ()
+        Utils.DoFileOutputLine(savePath, saveFilename, savelist);
+    }
+
+    public void RecordPoint()
+    {
+        System.DateTime nowtime;
+        Vector2 objPoint = Utils.GetV2FromV3(aimer.transform.position);
+        Vector2 postPoint = Utils.GetV2FromV3(target.transform.position);
+        Vector2 dObjPoint = (objPoint - lastObjPoint) * 100;
+        Vector2 dPostPoint = (postPoint - lastPostPoint) * 100;
+        double distance;
+        double rotateError;
+        double postRotateSpeed;
+        int hit;
+        //旋转问题未解决
+        pointnum++;
+        nowtime = System.DateTime.Now;        
+        objPoint *= 100;
+        postPoint *= 100;
+        distance = Vector2.Distance(objPoint, postPoint);
+        rotateError = currentTargetRollAngle;
+        hit = ((distance < errDistance) ? 1 : 0);
+        dObjPoint /= 40;
+        dPostPoint /= 40;
+        lastObjPoint = objPoint;
+        lastPostPoint = postPoint;
+        //postRotateSpeed;
+        SaveData(pointnum, nowtime, objPoint, postPoint, currentTargetRollAngle, null, distance, rotateError, hit, dObjPoint, dPostPoint, null);
+    }
+
+
+
+    public override void ClearUI ()
 	{
 		base.ClearUI ();
 		if (aimer != null)

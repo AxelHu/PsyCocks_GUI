@@ -119,7 +119,19 @@ public class Exp3 : ExpObject
 	public float showTime;
 	public float waitForInputTime;
 
-	public GameObject textObject;
+    protected int pointnum = 0;
+
+    protected Vector2 lastObjPoint = new Vector2(3f, 0);
+    protected Vector2 lastPostPoint = new Vector2(0, 0);
+    protected double lastRotateAngle = 0;
+
+    private string saveTime;
+    private string savePath;
+    private string saveTraceFilename;
+    private string saveHoldFilename;
+
+
+    public GameObject textObject;
 
 	public override void Init ()
 	{
@@ -127,11 +139,39 @@ public class Exp3 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
-	}
+
+        if (config.config3.mainTest)
+        {
+            InitTraceOutput();
+        }
+        InitHoldOutput();
+
+    }
+
+    void InitTraceOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "PointNum", "PointTime", "ObjPointX", "ObjPointY", "PostPointX", "PostPointY", "Distance", "Hit", "ObjSpeedX", "ObjSpeedY", "PostSpeedX", "PostSpeedY" };
+
+        saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveTraceFilename = "T3-Trace" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveTraceFilename, outputlist);
+    }
+
+    void InitHoldOutput()
+    {
+        List<string> outputlist = new List<string>();
+        outputlist = new List<string> { "HoldNum", "HoldTime", "StartTime", "SureTime", "Test_RT", "HoldError", "Error_Ratio" };
+
+        saveTime = System.DateTime.Now.ToString("yyyyMMddHHmmss");
+        savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
+        saveHoldFilename = "T3-Hold" + config.sortId + "-任务3-双任务模式突发事件反应时测试-" + ExpManager.tester.Id + "-" + ExpManager.tester.Name + "-" + ExpManager.tester.Count + "-" + saveTime + ".csv";
+        Utils.DoFileOutputLine(savePath, saveHoldFilename, outputlist);
+    }
 
 
-
-	public void InitPara()
+    public void InitPara()
 	{
 		if (config.config3.backgroundColor == "灰黑")
 			backgroundColor = new Color (48f / 255f, 48f / 255f, 48f / 255f);
@@ -833,5 +873,48 @@ public class Exp3 : ExpObject
 		if (go != null)
 			go.SetActive (false);
 	}
+
+    public void RecordPoint()
+    {
+        System.DateTime nowtime;
+        Vector2 objPoint = Utils.GetV2FromV3(aimer.transform.position);
+        Vector2 postPoint = Utils.GetV2FromV3(target.transform.position);
+        Vector2 dObjPoint = (objPoint - lastObjPoint) * 100;
+        Vector2 dPostPoint = (postPoint - lastPostPoint) * 100;
+        double distance;
+        int hit;
+
+        pointnum++;
+        nowtime = System.DateTime.Now;
+        objPoint *= 100;
+        postPoint *= 100;
+        distance = Vector2.Distance(objPoint, postPoint);
+        hit = ((distance < errDistance) ? 1 : 0);
+        dObjPoint /= 40;
+        dPostPoint /= 40;
+        lastObjPoint = objPoint;
+        lastPostPoint = postPoint;
+        SaveTraceData(pointnum, nowtime, objPoint, postPoint, distance, hit, dObjPoint, dPostPoint);
+    }
+
+    public void SaveTraceData(int pointNum, System.DateTime pointTime, Vector2 objPoint, Vector2 postPoint, double distance, int hit, Vector2 objSpeed, Vector2 postSpeed)
+    {
+        List<string> savelist = new List<string>();
+        savelist.Add(pointNum.ToString());
+        savelist.Add(pointTime.ToString("HH:mm:ss"));
+        savelist.Add((objPoint.x).ToString("f0"));
+        savelist.Add((objPoint.y).ToString("f0"));
+        savelist.Add((postPoint.x).ToString("f0"));
+        savelist.Add((postPoint.y).ToString("f0"));
+        savelist.Add(distance.ToString("f2"));
+        savelist.Add(hit.ToString());
+        savelist.Add((objSpeed.x).ToString("f0"));
+        savelist.Add((objSpeed.y).ToString("f0"));
+        savelist.Add((postSpeed.x).ToString("f0"));
+        savelist.Add((postSpeed.y).ToString("f0"));
+
+        Utils.DoFileOutputLine(savePath, saveTraceFilename, savelist);
+    }
+
 }
 
