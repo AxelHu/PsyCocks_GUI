@@ -253,6 +253,7 @@ public class Exp5 : ExpObject
 	bool gotoRunTipFlag = false;
 	ANSWER_STATUS tempPressCon;
 	GameObject toRunPopout;
+	bool showPointCountFlag = false;
 	public void ProcessLogic()
 	{
 		if(currentExpStatus == EXP5_STATUS.EXP_INIT)
@@ -272,6 +273,9 @@ public class Exp5 : ExpObject
 				ClosePopout ();
 				introPopoutFlag2 = true;
 				introPassFlag = false;
+				currentExpStatus = EXP5_STATUS.EXP_PRACTICE;
+				ResetParaForNext ();
+				popoutPic.gameObject.SetActive (false);
 			}
 			if (introPopoutFlag) 
 			{
@@ -279,7 +283,7 @@ public class Exp5 : ExpObject
 				introPopoutFlag = false;
 			}
 
-			if (introPopoutFlag2) 
+			/*if (introPopoutFlag2) 
 			{
 				introPopoutFlag2 = false;
 				ShowPopout("Pics/TaskR/cross", 0, 0, pointTime);
@@ -293,6 +297,7 @@ public class Exp5 : ExpObject
 				ResetParaForNext ();
 				popoutPic.gameObject.SetActive (false);
 			}
+			*/
 		}
 		else if(currentExpStatus == EXP5_STATUS.EXP_PAUSE)
 		{
@@ -309,7 +314,7 @@ public class Exp5 : ExpObject
 				else
 					path = RespondPicPath (PIC_STATUS.PIC_WRONG, tempPressCon);
 					
-				ShowPopout (path, 0, -200, 3f);
+				ShowPopout (path, 0, -200, 2.95f);
 				ansResShowCount = 3f;
 			}
 			ansResShowCount -= Utils.GetDeltaTime ();
@@ -336,9 +341,11 @@ public class Exp5 : ExpObject
 				leftPic.gameObject.SetActive (false);
 				rightPic.gameObject.SetActive (false);
 				ShowPopout ("Pics/TaskR/cross", 0, 0, pointTime);
+				showPointCountFlag = true;
 				return;
 			}
-			pointTimeCount2 -= Utils.GetDeltaTime ();
+			if(showPointCountFlag)
+				pointTimeCount2 -= Utils.GetDeltaTime ();
 			if (pointTimeCount2 > 0)
 				return;
 			if (showFlag) 
@@ -673,6 +680,7 @@ public class Exp5 : ExpObject
 		pointTimeCount2 = pointTime;
 		ansResFlag = false;
 		tempTimeFloor = Mathf.CeilToInt (lastTime);
+		showPointCountFlag = false;
 		Destroy (countObject);
 	
 	}
