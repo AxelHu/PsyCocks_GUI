@@ -60,6 +60,7 @@ public class Exp5 : ExpObject
 		InitPara ();
 		InitPrefab ();
 		InitRan ();
+        InitOutput();
 		startTime = DateTime.Now;
 		currentExpStatus = EXP5_STATUS.EXP_INIT;
 		waitTime = 0.2f;// pretend loading
