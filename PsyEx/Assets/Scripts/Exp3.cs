@@ -36,7 +36,7 @@ public class Exp3 : ExpObject
 		ACC
 	}
 	// for translation
-	public bool controllerDirection;
+	public int controllerDirection;
 	public float constantSpeed;
 	public float accStartSpeed;
 	public float accMinSpeed;
@@ -192,22 +192,19 @@ public class Exp3 : ExpObject
 			trailShape = TRAIL_SHAPE.ELLIPSE;
 		else
 			trailShape = TRAIL_SHAPE.EIGHT;
-		if (config.config3.direction == 0)
+		if (config.config3.direction == 1)
 			moveDirection = true;
 		else
 			moveDirection = false;
-		if (config.config3.ctrlDirection == 0)
-			controllerDirection = true;
-		else
-			controllerDirection = false;
-		//if (config.config2.moveMode == 0)
-		//	movePattern = MOVE_PATTERN.TRANS;
-		//else
-		//	movePattern = MOVE_PATTERN.TRAS_ROLL;
+        controllerDirection = (config.config3.ctrlDirection == 0 ? 1 : -1);
+        //if (config.config2.moveMode == 0)
+        //	movePattern = MOVE_PATTERN.TRANS;
+        //else
+        //	movePattern = MOVE_PATTERN.TRAS_ROLL;
 
-		//pauseEnabled = config.config2.pause;
-		//pauseFrequency = config.config2.pauseRate;
-		if(pauseEnabled)
+        //pauseEnabled = config.config2.pause;
+        //pauseFrequency = config.config2.pauseRate;
+        if (pauseEnabled)
 			pauseTime = 60f / pauseFrequency;
 		if (config.config3.speedMode == 0)
 			speedMode = SPEED_MODE.CONSTANT;
@@ -349,31 +346,31 @@ public class Exp3 : ExpObject
 					ShowAimerAndTarget ();
 				}
 			}
-			if (checkRoundStartPauseFlag) 
-			{
-				if (Input.GetButton ("Horizontal")) 
-				{
-					roundStartPauseFlag = false;
-					checkRoundStartPauseFlag = false;
-					checkMovementFlag = true;
-				}
-			}
-			if(checkMovementFlag)
-			{
-				if(Input.GetButton ("Horizontal"))
-				{
-					horiVal = Input.GetAxisRaw ("Horizontal");
-					//Debug.Log ("Hori_" + Input.GetButtonDown ("Horizontal") + "_val:" + horiVal);
-					horiMoveFlag = true;
-				}
-				if (Input.GetButton ("Vertical")) 
-				{
-					vertiVal = Input.GetAxisRaw ("Vertical");
-					//Debug.Log ("Verti_" + Input.GetButtonDown ("Vertical") + "_val:" + vertiVal);
-					vertiMoveFlag = true;
-				}
-			}
-			if (checkGreenLightFlag)
+            if (checkRoundStartPauseFlag)
+            {
+                if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0) || (Input.GetAxis("Vertical") != 0))
+                {
+                    roundStartPauseFlag = false;
+                    checkRoundStartPauseFlag = false;
+                    checkMovementFlag = true;
+                }
+            }
+            if (checkMovementFlag)
+            {
+                if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0))
+                {
+                    horiVal = Input.GetAxisRaw("Horizontal");
+                    //Debug.Log ("Hori_" + Input.GetButtonDown ("Horizontal") + "_val:" + horiVal);
+                    horiMoveFlag = true;
+                }
+                if ((Input.GetButton("Vertical")) || (Input.GetAxis("Vertical") != 0))
+                {
+                    vertiVal = Input.GetAxisRaw("Vertical");
+                    //Debug.Log ("Verti_" + Input.GetButtonDown ("Vertical") + "_val:" + vertiVal);
+                    vertiMoveFlag = true;
+                }
+            }
+            if (checkGreenLightFlag)
 			{
 				if (Input.GetButtonDown ("Button8")) 
 				{
@@ -529,12 +526,13 @@ public class Exp3 : ExpObject
 		targetPauseFlag = false;
 		totalTimeThisRun = 0f;
 		timeBetween = Random.Range (timeBetweenMin, timeBetweenMax);
-		//currentAngle = 0f;
-		//if (speedMode == SPEED_MODE.ACC) 
-		//{
-		//	currentSpeed = accStartSpeed;
-		//}
-		int temp;
+        if (trailShape == TRAIL_SHAPE.ELLIPSE)
+            currentAngle = Mathf.PI;
+        //if (speedMode == SPEED_MODE.ACC) 
+        //{
+        //	currentSpeed = accStartSpeed;
+        //}
+        int temp;
 		temp = Random.Range (0, ranPosCount);
 		plaHelPos = ranPos[temp];
 		ranPos.RemoveAt(temp);
@@ -562,23 +560,23 @@ public class Exp3 : ExpObject
 
 	public void AimerMove()
 	{
-		if (horiMoveFlag) 
-		{
-			if (horiVal > 0)
-				aimer.transform.position += new Vector3 (-aimerSpeed * Utils.GetDeltaTime (), 0, 0);
-			else
-				aimer.transform.position += new Vector3 (aimerSpeed * Utils.GetDeltaTime (), 0, 0);
-			//Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
-		}
-		if (vertiMoveFlag) 
-		{
-			if (vertiVal > 0)
-				aimer.transform.position += new Vector3 (0, aimerSpeed * Utils.GetDeltaTime (), 0);
-			else
-				aimer.transform.position += new Vector3 (0, -aimerSpeed * Utils.GetDeltaTime (), 0);
-			//Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
-		}
-	}
+        if (horiMoveFlag)
+        {
+            if (horiVal > 0)
+                aimer.transform.position += controllerDirection * new Vector3(-aimerSpeed * Utils.GetDeltaTime(), 0, 0);
+            else
+                aimer.transform.position += controllerDirection * new Vector3(aimerSpeed * Utils.GetDeltaTime(), 0, 0);
+            //Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
+        }
+        if (vertiMoveFlag)
+        {
+            if (vertiVal > 0)
+                aimer.transform.position += controllerDirection * new Vector3(0, aimerSpeed * Utils.GetDeltaTime(), 0);
+            else
+                aimer.transform.position += controllerDirection * new Vector3(0, -aimerSpeed * Utils.GetDeltaTime(), 0);
+            //Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
+        }
+    }
 
 	float currentAngle;
 	float currentSpeed;
@@ -603,7 +601,7 @@ public class Exp3 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				currentAngle = constantSpeed * (totalTimeExp3 - totalTimePaused) / circleRad;
+				currentAngle = constantSpeed * (totalTimeExp3 - totalTimePaused) / circleRad + Mathf.PI;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (dir * currentAngle), circleRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			} 
 			else 
@@ -621,7 +619,7 @@ public class Exp3 : ExpObject
 				else if (currentSpeed < accMinSpeed)
 					currentSpeed = accMinSpeed;
 				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
-				currentAngle += dir * angleShift;
+				currentAngle += dir * angleShift + Mathf.PI;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (currentAngle), circleRad * Mathf.Sin (currentAngle), target.transform.position.z);
 			}
 		}
@@ -668,7 +666,7 @@ public class Exp3 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				currentAngle = constantSpeed * (totalTimeExp3 - totalTimePaused) / circleRad;
+				currentAngle = constantSpeed * (totalTimeExp3 - totalTimePaused) / circleRad + Mathf.PI;
 				target.transform.position = new Vector3 ((Mathf.Sign(Mathf.Sin(dir*currentAngle/2f)))*(-eightRad + eightRad * Mathf.Cos (dir * currentAngle)),  eightRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			}
 			else
@@ -966,6 +964,14 @@ public class Exp3 : ExpObject
             sureTime = new System.DateTime();
         }
         SaveEventData(eventnum, EventType, startTime, sureTime, Event_rt, ButtonNo, Event_acc);
+    }
+
+    public void FixedUpdate()
+    {
+        if (currentExpStatus == EXP3_STATUS.EXP_RUN && (checkMovementFlag))
+        {
+            RecordPoint();
+        }
     }
 
 }

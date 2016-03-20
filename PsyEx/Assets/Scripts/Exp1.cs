@@ -36,7 +36,7 @@ public class Exp1 : ExpObject
 		ACC
 	}
 	// for translation
-	public bool controllerDirection;
+	public int controllerDirection;
 	public float constantSpeed;
 	public float accStartSpeed;
 	public float accMinSpeed;
@@ -141,14 +141,15 @@ public class Exp1 : ExpObject
 			trailShape = TRAIL_SHAPE.ELLIPSE;
 		else
 			trailShape = TRAIL_SHAPE.EIGHT;
-		if (config.config1.direction == 0)
+		if (config.config1.direction == 1)
 			moveDirection = true;
 		else
 			moveDirection = false;
-		if (config.config1.ctrlDirection == 0)
+        /*if (config.config1.ctrlDirection == 0)
 			controllerDirection = true;
 		else
-			controllerDirection = false;
+			controllerDirection = false;*/
+        controllerDirection = (config.config1.ctrlDirection == 0 ? 1 : -1);
 		if (config.config1.moveMode == 0)
 			movePattern = MOVE_PATTERN.TRANS;
 		else
@@ -233,7 +234,7 @@ public class Exp1 : ExpObject
 			}
 			if (checkRoundStartPauseFlag) 
 			{
-				if (Input.GetButton ("Horizontal")) 
+				if ((Input.GetButton ("Horizontal")) || (Input.GetAxis("Horizontal")!=0) || (Input.GetAxis("Vertical") != 0))
 				{
 					roundStartPauseFlag = false;
 					checkRoundStartPauseFlag = false;
@@ -242,14 +243,14 @@ public class Exp1 : ExpObject
 			}
 			if(checkMovementFlag)
 			{
-				if(Input.GetButton ("Horizontal"))
-				{
+				if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0))
+                {
 					horiVal = Input.GetAxisRaw ("Horizontal");
 					//Debug.Log ("Hori_" + Input.GetButtonDown ("Horizontal") + "_val:" + horiVal);
 					horiMoveFlag = true;
 				}
-				if (Input.GetButton ("Vertical")) 
-				{
+				if ((Input.GetButton("Vertical")) || (Input.GetAxis("Vertical") != 0))
+                {
 					vertiVal = Input.GetAxisRaw ("Vertical");
 					//Debug.Log ("Verti_" + Input.GetButtonDown ("Vertical") + "_val:" + vertiVal);
 					vertiMoveFlag = true;
@@ -364,7 +365,7 @@ public class Exp1 : ExpObject
 		totalTimePaused = 0f;
 		targetPauseFlag = false;
 		totalTimeThisRound = 0f;
-		currentAngle = 0f;
+        currentAngle = Mathf.PI;
 		if (speedMode == SPEED_MODE.ACC) 
 		{
 			currentSpeed = accStartSpeed;
@@ -385,17 +386,17 @@ public class Exp1 : ExpObject
 		if (horiMoveFlag) 
 		{
 			if (horiVal > 0)
-				aimer.transform.position += new Vector3 (-aimerSpeed * Utils.GetDeltaTime (), 0, 0);
+				aimer.transform.position += controllerDirection * new Vector3 (-aimerSpeed * Utils.GetDeltaTime (), 0, 0);
 			else
-				aimer.transform.position += new Vector3 (aimerSpeed * Utils.GetDeltaTime (), 0, 0);
+				aimer.transform.position += controllerDirection * new Vector3 (aimerSpeed * Utils.GetDeltaTime (), 0, 0);
 			//Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
 		}
 		if (vertiMoveFlag) 
 		{
 			if (vertiVal > 0)
-				aimer.transform.position += new Vector3 (0, aimerSpeed * Utils.GetDeltaTime (), 0);
+				aimer.transform.position += controllerDirection * new Vector3 (0, aimerSpeed * Utils.GetDeltaTime (), 0);
 			else
-				aimer.transform.position += new Vector3 (0, -aimerSpeed * Utils.GetDeltaTime (), 0);
+				aimer.transform.position += controllerDirection * new Vector3 (0, -aimerSpeed * Utils.GetDeltaTime (), 0);
 			//Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
 		}
 	}
@@ -423,7 +424,7 @@ public class Exp1 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				currentAngle = constantSpeed * (totalTimeThisRound - totalTimePaused) / circleRad;
+                currentAngle = constantSpeed * (totalTimeThisRound - totalTimePaused) / circleRad + Mathf.PI;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (dir * currentAngle), circleRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			} 
 			else 
@@ -488,7 +489,7 @@ public class Exp1 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				currentAngle = constantSpeed * (totalTimeThisRound - totalTimePaused) / circleRad;
+				currentAngle = constantSpeed * (totalTimeThisRound - totalTimePaused) / circleRad + Mathf.PI;
 				target.transform.position = new Vector3 ((Mathf.Sign(Mathf.Sin(dir*currentAngle/2f)))*(-eightRad + eightRad * Mathf.Cos (dir * currentAngle)),  eightRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			}
 			else
@@ -669,5 +670,14 @@ public class Exp1 : ExpObject
 		float omega = Mathf.Pow (v * v / (Mathf.Pow (elliRadX * Mathf.Sin (alpha), 2f) + Mathf.Pow (elliRadY * Mathf.Cos (alpha), 2f)), 0.5f);
 		return omega;
 	}
+
+    public void FixedUpdate()
+    {
+        if (currentExpStatus==EXP1_STATUS.EXP_RUN&&(checkMovementFlag))
+        {
+            RecordPoint();
+        }
+    }
+
 }
 
