@@ -479,11 +479,18 @@ public class Exp2 : ExpObject
 	public bool showIntroFlag = false;
 	public void ShowIntro()
 	{
-		if (moveDirection)
-			ShowPopout ("Pics/Inst/ST_Tracking", 0, 0, 99999);
-		else
-			ShowPopout ("Pics/Inst/ST_Tracking", 0, 0, 99999);
-		//TODO
+        if (config.config2.mainTest)
+        {
+            if (moveDirection)
+                ShowPopout("Pics/Inst/DT_timing_track", 0, 0, 99999);
+            else
+                ShowPopout("Pics/Inst/DT_timing_track_a", 0, 0, 99999);
+        }
+        else
+        {
+            ShowPopout("Pics/Inst/ST_timing", 0, 0, 99999);
+        }
+        //TODO
 	}
 
 	public void ResetParaForNextRun()

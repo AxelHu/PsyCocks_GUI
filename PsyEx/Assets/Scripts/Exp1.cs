@@ -331,10 +331,20 @@ public class Exp1 : ExpObject
 	public bool showIntroFlag = false;
 	public void ShowIntro()
 	{
-		if (moveDirection)
-			ShowPopout ("Pics/Inst/ST_Tracking", 0, 0, 99999);
-		else
-			ShowPopout ("Pics/Inst/ST_Tracking", 0, 0, 99999);
+        if (movePattern == MOVE_PATTERN.TRANS)
+        {
+            if (moveDirection)
+                ShowPopout("Pics/Inst/ST_Tracking", 0, 0, 99999);
+            else
+                ShowPopout("Pics/Inst/ST_Tracking_a", 0, 0, 99999);
+        }
+        else
+        {
+            if (moveDirection)
+                ShowPopout("Pics/Inst/ST_Tracking_and_rotate", 0, 0, 99999);
+            else
+                ShowPopout("Pics/Inst/ST_Tracking_and_rotate_a", 0, 0, 99999);
+        }
 		//TODO
 	}
 

@@ -214,7 +214,7 @@ public class Exp5 : ExpObject
 
 	public void ShowIntro()
 	{
-		ShowPopout ("Pics/TaskR/ST_3D", 0, 0, 99999);
+		ShowPopout ("Pics/Inst/ST_3D", 0, 0, 99999);
 	}
 
 	protected PIC_STATUS currentPicCombStatus;

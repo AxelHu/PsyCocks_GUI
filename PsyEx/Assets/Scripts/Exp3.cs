@@ -498,11 +498,18 @@ public class Exp3 : ExpObject
 	public bool showIntroFlag = false;
 	public void ShowIntro()
 	{
-		if (moveDirection)
-			ShowPopout ("Pics/Inst/DT_simpleRT_track", 0, 0, 99999);
-		else
-			ShowPopout ("Pics/Inst/DT_simpleRT_track", 0, 0, 99999);
-		//TODO
+        if (config.config3.mainTest)
+        {
+            if (moveDirection)
+                ShowPopout("Pics/Inst/DT_simpleRT_track", 0, 0, 99999);
+            else
+                ShowPopout("Pics/Inst/DT_simpleRT_track_a", 0, 0, 99999);
+        }
+        else
+        {
+            ShowPopout("Pics/Inst/ST_simpleRT", 0, 0, 99999);
+        }
+        //TODO
 	}
 
 	public void ResetParaForNextRun()
