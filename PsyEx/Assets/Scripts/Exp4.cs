@@ -160,7 +160,8 @@ public class Exp4 : ExpObject
 			if(Input.GetButtonDown("Button8"))
 			{
 				checkBallFlag = true;
-			}
+                pressTime = DateTime.Now;
+            }
 			if (Input.GetButtonDown ("EscMenu")) 
 			{
 				EndExp ();
@@ -241,6 +242,7 @@ public class Exp4 : ExpObject
 			{}
 			else
 			{
+                pressTime = DateTime.Now;
 				ShowCurrentRunRes();
 				Debug.Log ("timeOut");
 				roundInitFlag = true;
@@ -248,6 +250,7 @@ public class Exp4 : ExpObject
 		}
 		else if(currentExpStatus == EXP4_STATUS.EXP_OVER)
 		{
+            ClearUILeaveBackground();
 			if (overPicFlag) 
 			{
 				overPicFlag = false;
@@ -399,14 +402,13 @@ public class Exp4 : ExpObject
 		if (ballPosCheck == BALL_BLOCKER_RELATION.IN) 
 		{
 			if (biasFeedbackFlag)
-				PopoutWithText ("偏差率" + (CalCorrectRate()*100).ToString("f1")+"%", waitTimeInBetween, 0, 100f);
+				PopoutWithText ("偏差率" + (CalCorrectRate()*100).ToString("f2")+"%", waitTimeInBetween, 0, 220f);
 		}
 		else
 		{
-			PopoutWithText ("反应超时！", waitTimeInBetween, 0, 100f);
+            if (biasFeedbackFlag)
+                PopoutWithText ("反应超时！", waitTimeInBetween, 0, 100f);
 		}
-
-        pressTime = DateTime.Now;
 
 		Vector2 startP = new Vector2(0, 0);
         string movedirection="";
@@ -536,5 +538,11 @@ public class Exp4 : ExpObject
 		Destroy (blockerPic);
 		Destroy (ballPic);
 	}
+
+    public void ClearUILeaveBackground()
+    {
+        Destroy(blockerPic);
+        Destroy(ballPic);
+    }
 }
 
