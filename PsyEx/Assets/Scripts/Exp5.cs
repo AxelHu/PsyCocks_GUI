@@ -34,6 +34,9 @@ public class Exp5 : ExpObject
 
     protected int exerciseno = 0;
 	protected int taskno = 0;
+    protected int timeoutCount = 0;
+    protected int hitCount = 0;
+    protected double totalReactTime = 0;
 
 	protected string savePath;
 	protected string saveFilename;
@@ -69,7 +72,7 @@ public class Exp5 : ExpObject
 	void InitOutput()
 	{
 		List<string> outputlist = new List<string>();
-		outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时" };
+		outputlist = new List<string> { "序号", "左侧图片", "右侧图片", "能否重合", "反应按键", "是否正确", "反应时", "实验开始时间", "实验结束时间", "实验用时" };
 
 		saveTime = DateTime.Now.ToString("yyyyMMddHHmmss");
 		savePath = Utils.MakeDirectoy("Data\\" + ExpManager.tester.Id + "-" + ExpManager.tester.Name);
@@ -248,9 +251,9 @@ public class Exp5 : ExpObject
             TimeSpan ts = startTime.Subtract(endTime).Duration();
             savelist.Add(startTime.ToString("HH:mm:ss"));
             savelist.Add(endTime.ToString("HH:mm:ss"));
-            int duration;
-            duration = ts.Minutes * 60 + ts.Seconds;
-            savelist.Add(duration.ToString());
+            double duration;
+            duration = (double)ts.Minutes * 60 + (double)ts.Seconds + (double)ts.Milliseconds/10;
+            savelist.Add(duration.ToString("f1"));
         }
 
 		Utils.DoFileOutputLine(savePath, saveFilename, savelist);
@@ -293,7 +296,7 @@ public class Exp5 : ExpObject
 			}
 			if (introPopoutFlag) 
 			{
-				ShowPopout ("Pics/TaskR/ST_3D", 0, 0, 99999);
+				ShowPopout ("Pics/Inst/ST_3D", 0, 0, 99999);
 				introPopoutFlag = false;
 			}
 
@@ -321,12 +324,25 @@ public class Exp5 : ExpObject
 		{
 			if (ansResFlag) 
 			{
-				ansResFlag = false;
+                if (countObject != null)
+                    Destroy(countObject);
+                ansResFlag = false;
 				string path;
-				if (CheckSameShape (currentLeftPicName, currentRightPicName))
-					path = RespondPicPath (PIC_STATUS.PIC_RIGHT, tempPressCon);
-				else
-					path = RespondPicPath (PIC_STATUS.PIC_WRONG, tempPressCon);
+                PIC_STATUS isCoincide;
+                ANSWER_STATUS isRight;
+
+                isCoincide = (CheckSameShape(currentLeftPicName, currentRightPicName)) ? PIC_STATUS.PIC_RIGHT : PIC_STATUS.PIC_WRONG;
+                if (isJPressed||isFPressed)
+                {
+                    bool keyPress;
+                    keyPress = (isFPressed ? true : false);
+                    isRight = (keyPress == CheckSameShape(currentLeftPicName, currentRightPicName)) ? ANSWER_STATUS.ANS_RIGHT : ANSWER_STATUS.ANS_WRONG;
+                }
+                else
+                {
+                    isRight = ANSWER_STATUS.ANS_TIMEOUT;
+                }
+				path = RespondPicPath (isCoincide, isRight);
 					
 				ShowPopout (path, 0, -200, 2.95f);
 				ansResShowCount = 3f;
@@ -376,7 +392,7 @@ public class Exp5 : ExpObject
 			{
 				ansCheckFlag = false;
 				RecordAns ();
-				if (practiceShowCount <= 0) 
+				if (practiceShowCount >= 0) 
 				{
 					ansResFlag = true;
 					checkGotoRunFlag = true;
@@ -488,7 +504,13 @@ public class Exp5 : ExpObject
 			{
 				overPicFlag = false;
 				PopoutWithText ("该任务完成, 按任意键结束", 99999, 0, 100f);
-			}
+
+                double correctRatio = 0;
+                double avgRT = 0;
+                correctRatio = ((double)hitCount / 64) * 100;
+                avgRT = totalReactTime / (64 - (double)timeoutCount);
+                PopoutWithText("本次任务平均正确率为" + correctRatio.ToString("f2") + "%,平均反应时为" + avgRT.ToString("f0") + "毫秒", 99999, 0, -200f);
+            }
 		}
 	}
 
@@ -678,7 +700,7 @@ public class Exp5 : ExpObject
 			tempTimeFloor--;
 			if (countObject != null)
 				Destroy (countObject);
-			countObject = PopoutWithText ("还剩" + tmNow + "秒", 99999, 0, 100f);
+			countObject = PopoutWithText ("还剩" + tmNow + "秒", 99999, 0, -200f);
 		}
 	}
 
@@ -770,7 +792,20 @@ public class Exp5 : ExpObject
 		{
             keypress = (isFPressed ? 0 : 1);
             isright = ((iscoincide == keypress) ? 1 : 0);
-            reacttime = stopwatch.ElapsedMilliseconds;
+            //reacttime = stopwatch.ElapsedMilliseconds;
+            reacttime = (double)stopwatch.ElapsedTicks * (1 / (double)System.Diagnostics.Stopwatch.Frequency) * 1000;
+            if (currentExpStatus==EXP5_STATUS.EXP_RUN)
+            {
+                if (isright == 1)
+                {
+                    hitCount++;
+                }
+                totalReactTime += reacttime;
+            }
+        }
+        else
+        {
+            timeoutCount++;
         }
 
         SaveData(saveno, currentLeftPicName, currentRightPicName, iscoincide, keypress, isright, reacttime);
