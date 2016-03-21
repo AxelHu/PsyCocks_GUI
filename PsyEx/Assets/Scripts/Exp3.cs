@@ -216,7 +216,7 @@ public class Exp3 : ExpObject
 		accMaxSpeed = (float)config.config3.maxSpeed / 100f;
 		accValueMin = (float)config.config3.minASpeed / 100f;
 		accValueMax = (float)config.config3.maxASpeed / 100f;
-
+        accDir = 1f;
 		//aimerSpeed = (float)hdConfig.Speed;
 		aimerSpeed = 150f/100f;
 		errDistance = 50f;
@@ -497,7 +497,7 @@ public class Exp3 : ExpObject
 	{
         if (config.config3.mainTest)
         {
-            if (moveDirection)
+            if (controllerDirection == 1)
                 ShowPopout("Pics/Inst/DT_simpleRT_track", 0, 0, 99999);
             else
                 ShowPopout("Pics/Inst/DT_simpleRT_track_a", 0, 0, 99999);
@@ -583,6 +583,7 @@ public class Exp3 : ExpObject
 	float currentTargetRollAngle;
 	float ecc;
 	float omega; // for wrong elli cal
+    float accDir;
 	public void TargetMove()
 	{
 		if (targetPauseFlag) 
@@ -611,14 +612,20 @@ public class Exp3 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift + Mathf.PI;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (currentAngle), circleRad * Mathf.Sin (currentAngle), target.transform.position.z);
 			}
@@ -645,13 +652,20 @@ public class Exp3 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				omega = WrongElliCal (currentSpeed, currentAngle);
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                omega = WrongElliCal (currentSpeed, currentAngle);
 				float angleShift = omega * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 (elliRadX * Mathf.Cos (currentAngle), elliRadY * Mathf.Sin (currentAngle), target.transform.position.z);
@@ -676,14 +690,20 @@ public class Exp3 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 ((Mathf.Sign(Mathf.Sin(dir*currentAngle/2f)))*(-eightRad + eightRad * Mathf.Cos (dir * currentAngle)),  eightRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			}

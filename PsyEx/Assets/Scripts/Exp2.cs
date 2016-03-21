@@ -203,6 +203,7 @@ public class Exp2 : ExpObject
 		accMinSpeed = (float)config.config2.minSpeed / 100f;
 		accMaxSpeed = (float)config.config2.maxSpeed / 100f;
 		accValueMin = (float)config.config2.minASpeed / 100f;
+        accDir = 1f;
 		//accValueMax = (float)config.config2maxASpeed / 100f;
 		//rollMinSpeed = (float)config.config2.minGTASpeed;
 		//rollMaxSpeed = (float)config.config2.maxGTASpeed;
@@ -214,6 +215,7 @@ public class Exp2 : ExpObject
 		errDistance = 50f;
 		showIntroFlag = true;
 		repeatCount = 0;
+        mainTask = config.config2.mainTest;
 		// side task
 		loopTime = config.config2.loop;
 		feedback = config.config2.feedback;
@@ -222,8 +224,11 @@ public class Exp2 : ExpObject
 
 	public void InitPrefab()
 	{
-		InitAimer ();// layer z = 5
-		InitTarget ();
+        InitTarget();// layer z = 5
+        if (mainTask)
+        {            
+            InitAimer();
+        }
 		background.GetComponentInChildren<Renderer> ().material.color = backgroundColor;
 	}
 
@@ -320,8 +325,15 @@ public class Exp2 : ExpObject
 				currentExpStatus = EXP2_STATUS.EXP_RUN;
 				popoutPic.gameObject.SetActive(false);
 				ResetParaForNextRun ();
-				ShowAimerAndTarget ();
-				checkMovementFlag = true;
+                if (mainTask)
+                {
+                    ShowAimerAndTarget();
+                    checkMovementFlag = true;
+                }
+                else
+                {
+                    target.gameObject.SetActive(true);
+                }
 			}
 		}
 		else if(currentExpStatus == EXP2_STATUS.EXP_PAUSE)
@@ -340,28 +352,44 @@ public class Exp2 : ExpObject
 					pauseTipFlag = false;
 					checkPauseTipFlag = false;
 					GameObject.Destroy (pauseTip);
-					ShowAimerAndTarget ();
-				}
+                    if (mainTask)
+					    ShowAimerAndTarget ();
+                    else
+                    {
+                        target.gameObject.SetActive(true);
+                        expstartflag = true;
+                    }
+                        
+                }
 			}
             if (!expstartflag)
             {
-                if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0) || (Input.GetAxis("Vertical") != 0))
+                if (mainTask)
                 {
-                    roundStartPauseFlag = false;
-                    checkRoundStartPauseFlag = false;
+                    if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0) || (Input.GetAxis("Vertical") != 0))
+                    {
+                        roundStartPauseFlag = false;
+                        checkRoundStartPauseFlag = false;
+                        expstartflag = true;
+                        checkMovementFlag = true;
+                    }
+                }
+                else
+                {
+                    System.Threading.Thread.Sleep(2000);
+                    target.gameObject.SetActive(true);
                     expstartflag = true;
-                    checkMovementFlag = true;
                 }
             }
             if (checkMovementFlag)
             {
-                if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0))
+                if ((Input.GetButton("Horizontal")) || (Input.GetAxis("Horizontal") != 0f))
                 {
                     horiVal = Input.GetAxisRaw("Horizontal");
-                    //Debug.Log ("Hori_" + Input.GetButtonDown ("Horizontal") + "_val:" + horiVal);
+                    Debug.Log ("Hori_" + Input.GetButton ("Horizontal") + "_val:" + horiVal);
                     horiMoveFlag = true;
                 }
-                if ((Input.GetButton("Vertical")) || (Input.GetAxis("Vertical") != 0))
+                if ((Input.GetButton("Vertical")) || (Input.GetAxis("Vertical") != 0f))
                 {
                     vertiVal = Input.GetAxisRaw("Vertical");
                     //Debug.Log ("Verti_" + Input.GetButtonDown ("Vertical") + "_val:" + vertiVal);
@@ -410,7 +438,7 @@ public class Exp2 : ExpObject
 			}
             if (!expstartflag)
                 return;
-            if (roundStartPauseFlag && totalTimeThisRun > roundRestTime) 
+            if ((repeatCount == 1)||(roundStartPauseFlag && totalTimeThisRun > roundRestTime)) 
 			{
 				roundStartPauseFlag = false;
 				ActiveText (estiTimeThisRound + "s");
@@ -424,10 +452,13 @@ public class Exp2 : ExpObject
 				checkGreenLightFlag = true;
                 startTime = System.DateTime.Now;
 			}
-			AimerMove ();
-			TargetMove ();
-			CheckIfLocked ();
-			ResetParaForNextFrame ();
+            if (mainTask)
+            {
+                AimerMove();
+                TargetMove();
+                CheckIfLocked();
+            }
+            ResetParaForNextFrame ();
 			if (totalTimeThisRun > 2f * estiTimeThisRound + 5f + 2 * roundRestTime || buttonDownFlag)
 				roundFinishFlag = true;
 			if (roundFinishFlag) 
@@ -481,7 +512,7 @@ public class Exp2 : ExpObject
 	{
         if (config.config2.mainTest)
         {
-            if (moveDirection)
+            if (controllerDirection == 1)
                 ShowPopout("Pics/Inst/DT_timing_track", 0, 0, 99999);
             else
                 ShowPopout("Pics/Inst/DT_timing_track_a", 0, 0, 99999);
@@ -509,8 +540,7 @@ public class Exp2 : ExpObject
 		//totalTimePaused = 0f;
 		targetPauseFlag = false;
 		totalTimeThisRun = 0f;
-        if (trailShape==TRAIL_SHAPE.ELLIPSE)
-            currentAngle = Mathf.PI;
+        currentAngle = Mathf.PI;
         //if (speedMode == SPEED_MODE.ACC) 
         //{
         //	currentSpeed = accStartSpeed;
@@ -556,6 +586,7 @@ public class Exp2 : ExpObject
 	float currentTargetRollAngle;
 	float ecc;
 	float omega; // for wrong elli cal
+    float accDir;
 	public void TargetMove()
 	{
 		if (targetPauseFlag) 
@@ -584,14 +615,20 @@ public class Exp2 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (currentAngle), circleRad * Mathf.Sin (currentAngle), target.transform.position.z);
 			}
@@ -618,13 +655,20 @@ public class Exp2 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				omega = WrongElliCal (currentSpeed, currentAngle);
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                omega = WrongElliCal (currentSpeed, currentAngle);
 				float angleShift = omega * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 (elliRadX * Mathf.Cos (currentAngle), elliRadY * Mathf.Sin (currentAngle), target.transform.position.z);
@@ -649,14 +693,20 @@ public class Exp2 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 ((Mathf.Sign(Mathf.Sin(dir*currentAngle/2f)))*(-eightRad + eightRad * Mathf.Cos (dir * currentAngle)),  eightRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			}
@@ -891,9 +941,12 @@ public class Exp2 : ExpObject
 
     public void FixedUpdate()
     {
-        if (currentExpStatus == EXP2_STATUS.EXP_RUN && (checkMovementFlag))
+        if (mainTask)
         {
-            RecordPoint();
+            if (currentExpStatus == EXP2_STATUS.EXP_RUN && (checkMovementFlag))
+            {
+                RecordPoint();
+            }
         }
     }
 

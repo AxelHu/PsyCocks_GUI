@@ -53,6 +53,7 @@ public class Exp1 : ExpObject
 	public float errAngle;
 
 	public float aimerSpeed;
+	public float aimerAngle;
 	//--------------------parameters used in exp1
 	public EXP1_STATUS currentExpStatus;
 	public string leftJoystickButtonName = "Horizontal";
@@ -103,6 +104,14 @@ public class Exp1 : ExpObject
 	public GameObject pauseTip;
 	public bool targetPauseFlag;
 	public float totalTimeThisRound;
+
+	protected bool rollFlag;
+	protected float rollVal;
+
+	float pauseOffset1;
+	float pauseOffset2;
+	int pauseCount;
+	int pauseDone;
 	//------------------
 	public override void Init ()
 	{
@@ -176,6 +185,7 @@ public class Exp1 : ExpObject
 
 		//aimerSpeed = (float)hdConfig.Speed;
 		aimerSpeed = 150f/100f;
+		aimerAngle = 30f;
 		errDistance = 50f;
 		showIntroFlag = true;
 		repeatCount = 0;
@@ -255,6 +265,14 @@ public class Exp1 : ExpObject
 					//Debug.Log ("Verti_" + Input.GetButtonDown ("Vertical") + "_val:" + vertiVal);
 					vertiMoveFlag = true;
 				}
+                if (movePattern == MOVE_PATTERN.TRAS_ROLL)
+                {
+                    if (Input.GetButton("Roll") || Input.GetAxis("Roll") != 0)
+                    {
+                        rollVal = Input.GetAxisRaw("Roll");
+                        rollFlag = true;
+                    }
+                }
 			}
 		}
 		else if(currentExpStatus == EXP1_STATUS.EXP_OVER)
@@ -292,6 +310,18 @@ public class Exp1 : ExpObject
 			if (roundStartPauseFlag)
 				return;
 			totalTimeThisRound += Utils.GetDeltaTime ();
+			if (pauseEnabled && totalTimeThisRound % pauseTime > pauseOffset1 && totalTimeThisRound % pauseTime < pauseOffset2 && pauseDone < pauseCount) 
+			{
+				targetPauseFlag = true;
+				pauseDone++;
+			}
+			else if(pauseEnabled && totalTimeThisRound % pauseTime > pauseOffset2)
+			{
+				targetPauseFlag = false;
+				pauseOffset1 = pauseTime / pauseFrequency * Random.value;
+				pauseOffset2 = 2f + 2f * Random.value;
+				pauseCount++;
+			}
 			AimerMove ();
 			TargetMove ();
 			CheckIfLocked ();
@@ -334,17 +364,17 @@ public class Exp1 : ExpObject
 	{
         if (movePattern == MOVE_PATTERN.TRANS)
         {
-            if (moveDirection)
-                ShowPopout("Pics/Inst/ST_Tracking", 0, 0, 99999);
+            if (controllerDirection == 1)
+                ShowPopout("Pics/Inst/ST_tracking", 0, 0, 99999);
             else
-                ShowPopout("Pics/Inst/ST_Tracking_a", 0, 0, 99999);
+                ShowPopout("Pics/Inst/ST_tracking_a", 0, 0, 99999);
         }
         else
         {
-            if (moveDirection)
-                ShowPopout("Pics/Inst/ST_Tracking_and_rotate", 0, 0, 99999);
+            if (controllerDirection == 1)
+                ShowPopout("Pics/Inst/DTtracking_and_rotate", 0, 0, 99999);
             else
-                ShowPopout("Pics/Inst/ST_Tracking_and_rotate_a", 0, 0, 99999);
+				ShowPopout("Pics/Inst/DTtracking_and_rotate_a", 0, 0, 99999);
         }
 		//TODO
 	}
@@ -366,6 +396,11 @@ public class Exp1 : ExpObject
 		targetPauseFlag = false;
 		totalTimeThisRound = 0f;
         currentAngle = Mathf.PI;
+		accDir = 1f;
+		pauseOffset1 = pauseTime / pauseFrequency * Random.value;
+		pauseOffset2 = 2f + 2f * Random.value;
+		pauseCount = 1;
+		pauseDone = 0;
 		if (speedMode == SPEED_MODE.ACC) 
 		{
 			currentSpeed = accStartSpeed;
@@ -377,6 +412,7 @@ public class Exp1 : ExpObject
 	{
 		horiMoveFlag = false;
 		vertiMoveFlag = false;
+		rollFlag = false;
 		horiVal = 0f;
 		vertiVal = 0f;
 	}
@@ -399,6 +435,14 @@ public class Exp1 : ExpObject
 				aimer.transform.position += controllerDirection * new Vector3 (0, -aimerSpeed * Utils.GetDeltaTime (), 0);
 			//Debug.Log (aimerSpeed * Utils.GetDeltaTime ());
 		}
+		if (rollFlag) 
+		{
+			//Debug.Log (rollVal);
+			if (rollVal > 0)
+				aimer.transform.Rotate (new Vector3 (0, 0, aimerAngle * Utils.GetDeltaTime ()));
+			else
+				aimer.transform.Rotate (new Vector3 (0, 0, -aimerAngle * Utils.GetDeltaTime ()));
+		}
 	}
 
 	float currentAngle;
@@ -406,6 +450,7 @@ public class Exp1 : ExpObject
 	float currentTargetRollAngle;
 	float ecc;
 	float omega; // for wrong elli cal
+	float accDir;
 	public void TargetMove()
 	{
 		if (targetPauseFlag) 
@@ -435,12 +480,17 @@ public class Exp1 : ExpObject
 				else
 					dir = 1;
 				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
+				currentSpeed += accDir * accVal * Utils.GetDeltaTime ();
 				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
+				if (currentSpeed > accMaxSpeed) 
+				{
 					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
+					accDir = -1f;
+				} else if (currentSpeed < accMinSpeed)
+				{
 					currentSpeed = accMinSpeed;
+					accDir = 1f;
+				}
 				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 (circleRad * Mathf.Cos (currentAngle), circleRad * Mathf.Sin (currentAngle), target.transform.position.z);
@@ -468,13 +518,20 @@ public class Exp1 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				omega = WrongElliCal (currentSpeed, currentAngle);
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                omega = WrongElliCal (currentSpeed, currentAngle);
 				float angleShift = omega * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 (elliRadX * Mathf.Cos (currentAngle), elliRadY * Mathf.Sin (currentAngle), target.transform.position.z);
@@ -499,26 +556,38 @@ public class Exp1 : ExpObject
 					dir = -1;
 				else
 					dir = 1;
-				float accVal = Random.Range (accValueMin, accValueMax);
-				currentSpeed += accVal * Utils.GetDeltaTime ();
-				Debug.Log (currentSpeed);
-				if (currentSpeed > accMaxSpeed)
-					currentSpeed = accMaxSpeed;
-				else if (currentSpeed < accMinSpeed)
-					currentSpeed = accMinSpeed;
-				float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
+                float accVal = Random.Range(accValueMin, accValueMax);
+                currentSpeed += accDir * accVal * Utils.GetDeltaTime();
+                Debug.Log(currentSpeed);
+                if (currentSpeed > accMaxSpeed)
+                {
+                    currentSpeed = accMaxSpeed;
+                    accDir = -1f;
+                }
+                else if (currentSpeed < accMinSpeed)
+                {
+                    currentSpeed = accMinSpeed;
+                    accDir = 1f;
+                }
+                float angleShift = currentSpeed / circleRad * Utils.GetDeltaTime ();
 				currentAngle += dir * angleShift;
 				target.transform.position = new Vector3 ((Mathf.Sign(Mathf.Sin(dir*currentAngle/2f)))*(-eightRad + eightRad * Mathf.Cos (dir * currentAngle)),  eightRad * Mathf.Sin (dir * currentAngle), target.transform.position.z);
 			}
 		}
 		if (movePattern == MOVE_PATTERN.TRAS_ROLL) 
 		{
-			float rollVal = Random.Range (rollMinSpeed, rollMaxSpeed) * Utils.GetDeltaTime ();
+			float rollVal = accDir * Random.Range (rollMinSpeed, rollMaxSpeed) * Utils.GetDeltaTime ();
 			currentTargetRollAngle += rollVal;
 			if (currentTargetRollAngle > rollMaxRange)
-				currentTargetRollAngle = rollMaxRange;
+            {
+                currentTargetRollAngle = rollMaxRange;
+                accDir = -1f;
+            }				
 			else if (currentTargetRollAngle < rollMinRange)
-				currentTargetRollAngle = rollMinRange;
+            {
+                currentTargetRollAngle = rollMinRange;
+                accDir = 1f;
+            }			
 			//Debug.Log (currentTargetRollAngle);
 			target.transform.rotation = Quaternion.Euler (0, 0, currentTargetRollAngle);
 		}
